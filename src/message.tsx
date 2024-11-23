@@ -42,7 +42,7 @@ const LoginPage = () => {
     }
 
     const bookImages: HTMLImageElement[] = [];
-    const books = ["book-svgrepo-com.png", "book-opened-svgrepo-com.png", "book-education-study-svgrepo-com.png"]; // Replace with your image filenames
+    const books = ["wired-lineal-112-book-hover-closed (1).png", "wired-lineal-112-book-hover-closed.png","wired-lineal-112-book-hover-closed (2).png"]; // Replace with your image filenames
     let loadedImages = 0;
 
     const particles: { x: number; y: number; size: number; dx: number; dy: number; imageIndex: number }[] = [];
@@ -76,7 +76,7 @@ const LoginPage = () => {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: Math.random() * 30 + 20, // Random size for books
+          size: Math.random() * 40 + 30, // Random size for books
           dx: (Math.random() - 0.5) * 2,
           dy: (Math.random() - 0.5) * 2,
           imageIndex: Math.floor(Math.random() * bookImages.length),
@@ -103,13 +103,13 @@ const LoginPage = () => {
         const dist = Math.sqrt(distX * distX + distY * distY);
 
         if (dist < 150) {
-          particle.dx += distX / 500;
-          particle.dy += distY / 500;
+          particle.dx += distX / 1500;
+          particle.dy += distY / 1500;
         }
 
         // Bounce particles off the edges
-        if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -1;
+        if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -0.8;
+        if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -0.8;
       });
     };
 

@@ -183,7 +183,7 @@ button img {
 
 .google-login:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgb(226, 57, 57);
+  box-shadow: 0 8px 15px rgba(226, 57, 57, 0.982);
 }
 
 .facebook-login {

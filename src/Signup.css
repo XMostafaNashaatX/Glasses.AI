@@ -55,7 +55,7 @@
     background: rgba(255, 255, 255, 0.85);
     border-radius: 15px;
     padding: 40px 30px;
-    box-shadow: 0 10px 25px rgba(175, 91, 2, 0.311);
+    box-shadow: 0 10px 25px rgba(175, 91, 2, 0.355);
     max-width: 400px;
     width: 100%;
     animation: fadeInScale 2s ease-in-out;
@@ -182,7 +182,7 @@
   
   .google-login:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgb(226, 57, 57);
+    box-shadow: 0 8px 15px rgba(226, 57, 57, 0.8);
   }
   
   .facebook-login {
