@@ -1,6 +1,6 @@
 // src/Signup.tsx
 import React, { useEffect } from "react";
-import "./Login.css";
+import "./Signup.css";
 import googleIcon from "./assets/google-icon-logo-svgrepo-com.svg";
 import facebookicon from "./assets/facebook-svgrepo-com.svg";
 import Book1 from "./assets/book-education-study-svgrepo-com.png";

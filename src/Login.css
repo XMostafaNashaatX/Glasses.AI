@@ -47,6 +47,7 @@ canvas#backgroundCanvas {
   box-shadow: none;
   pointer-events: none;
   opacity: 1; /* Ensure visibility */
+  animation: fadeInScale 2s
 }
 
 .login-container {
@@ -58,7 +59,7 @@ canvas#backgroundCanvas {
   box-shadow: 0 10px 25px rgba(175, 91, 2, 0.311);
   max-width: 400px;
   width: 100%;
-  animation: fadeInScale 5s ease-in-out;
+  animation: fadeInScale 7s ease-in-out;
 }
 
 
