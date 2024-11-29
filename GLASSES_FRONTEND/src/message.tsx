@@ -1,105 +1,111 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Login.css';
-import googleIcon from './assets/google-icon-logo-svgrepo-com.svg'; // Import Google SVG
-import facebookIcon from './assets/facebook-svgrepo-com.svg'; // Import Facebook SVG
+import googleIcon from './assets/google-icon-logo-svgrepo-com.svg';
+import facebookIcon from './assets/facebook-svgrepo-com.svg';
 
 const AuthForm: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
-  const handleSignUpClick = () => {
-    setIsSignUp(true);
-  };
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/users/csrf/', {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setCsrfToken(data.csrf_token);
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
-  const handleSignInClick = () => {
-    setIsSignUp(false);
-  };
+  const handleSignUpClick = () => setIsSignUp(true);
+  const handleSignInClick = () => setIsSignUp(false);
 
-  // Handle form submission for sign-in
+  // Handle login
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Send the login request to the backend
     try {
-      const response = await fetch('https://your-backend-url.com/api/login', {
+      const response = await fetch('http://127.0.0.1:8000/users/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken || '',
         },
-        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
         alert('Login successful');
+        console.log('CSRF Token:', data.csrf_token);
       } else {
-        alert('Login failed');
+        const errorData = await response.json();
+        alert(errorData.error || 'Login failed');
       }
     } catch (error) {
       console.error('Error during login:', error);
-      alert('An error occurred');
+      alert('An error occurred during login');
     }
   };
 
-  // Handle form submission for sign-up
+  // Handle sign-up
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Send the sign-up request to the backend
     try {
-      const response = await fetch('https://your-backend-url.com/api/signup', {
+      const response = await fetch('http://127.0.0.1:8000/users/registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken || '',
         },
-        body: JSON.stringify({ name, email, password }),
+        credentials: 'include',
+        body: JSON.stringify({ username, email, password }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
-        alert('Sign Up successful');
+        alert('Sign-up successful! You can now log in.');
       } else {
-        alert('Sign Up failed');
+        const errorData = await response.json();
+        alert(errorData.error || 'Sign-up failed');
       }
     } catch (error) {
       console.error('Error during sign-up:', error);
-      alert('An error occurred');
+      alert('An error occurred during sign-up');
     }
   };
 
-  const handleGoogleClick = async () => {
-    // Redirect the user to Google Login
+  const handleGoogleClick = () => {
     window.open(
       'https://accounts.google.com/o/oauth2/auth?' +
-        new URLSearchParams({
-          client_id: '377073767201-tfl7ct48pr7s06k8pn2gcbuoi1irhf1b.apps.googleusercontent.com',
-          scope: 'email profile',
-          response_type: 'code',
-          access_type: 'offline',
-          prompt: 'consent',
-        }).toString(),
+      new URLSearchParams({
+        client_id: '377073767201-tfl7ct48pr7s06k8pn2gcbuoi1irhf1b.apps.googleusercontent.com',
+        scope: 'email profile',
+        response_type: 'code',
+        access_type: 'offline',
+        prompt: 'consent',
+      }).toString(),
       '_self'
     );
   };
 
-  const handleFacebookClick = async () => {
-    // Redirect the user to Facebook Login
+  const handleFacebookClick = () => {
     window.open(
       'https://www.facebook.com/v3.3/dialog/oauth?' +
-        new URLSearchParams({
-          client_id: 'YOUR_FACEBOOK_CLIENT_ID',
-          redirect_uri: 'http://localhost:3000',
-          scope: 'email',
-          response_type: 'code',
-          access_type: 'offline',
-          prompt: 'consent',
-        }).toString(),
+      new URLSearchParams({
+        client_id: 'YOUR_FACEBOOK_CLIENT_ID',
+        redirect_uri: 'http://localhost:3000',
+        scope: 'email',
+        response_type: 'code',
+      }).toString(),
       '_self'
     );
   };
@@ -118,9 +124,27 @@ const AuthForm: React.FC = () => {
             </a>
           </div>
           <span>or use your email for registration</span>
-          <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <button type="submit">Sign Up</button>
         </form>
       </div>
@@ -136,8 +160,20 @@ const AuthForm: React.FC = () => {
             </a>
           </div>
           <span>or use your account</span>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <a href="#">Forgot your password?</a>
           <button type="submit">Sign In</button>
         </form>
@@ -147,19 +183,21 @@ const AuthForm: React.FC = () => {
           <div className="overlay-panel overlay-left">
             <h1>Welcome Back!</h1>
             <p>To keep connected with us please login with your personal info</p>
-            <button className="ghost" onClick={handleSignInClick}>Sign In</button>
+            <button className="ghost" onClick={handleSignInClick}>
+              Sign In
+            </button>
           </div>
           <div className="overlay-panel overlay-right">
             <h1>Welcome to Glasses.AI!</h1>
             <p>Enter your personal details to start reviewing and discovering amazing books</p>
-            <button className="ghost" onClick={handleSignUpClick}>Sign Up</button>
+            <button className="ghost" onClick={handleSignUpClick}>
+              Sign Up
+            </button>
           </div>
         </div>
       </div>
-      <footer></footer>
     </div>
   );
 };
 
 export default AuthForm;
-
