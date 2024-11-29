@@ -46,10 +46,7 @@ def csrf(request):
     return JsonResponse({"csrf_token": csrf_token})
 
 
-
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AllowAny , )
-
-
+    permission_classes = (AllowAny,)

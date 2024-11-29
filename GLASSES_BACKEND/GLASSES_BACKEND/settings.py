@@ -33,17 +33,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'store.apps.StoreConfig',
-    'users.apps.UsersConfig',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'corsheaders',
-    'rest_framework_simplejwt',
+    "store.apps.StoreConfig",
+    "ratings.apps.RatingsConfig",
+    "users.apps.UsersConfig",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "corsheaders",
+    "rest_framework_simplejwt",
 ]
 
 MIDDLEWARE = [
@@ -136,7 +137,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "glasses_db",
         "USER": "root",
-        "PASSWORD": "1234",
+        "PASSWORD": "abdo1234",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }

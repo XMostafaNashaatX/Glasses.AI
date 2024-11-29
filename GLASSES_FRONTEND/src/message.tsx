@@ -17,97 +17,117 @@ const AuthForm: React.FC = () => {
     setIsSignUp(false);
   };
 
-  // Handle form submission for sign-in
-  const handleSignInSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFacebookLogin = () => {
+    console.log("Facebook login clicked!");
+  };
 
-    // Send the login request to the backend
-    try {
-      const response = await fetch('https://your-backend-url.com/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
-        alert('Login successful');
-      } else {
-        alert('Login failed');
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      alert('An error occurred');
+  useEffect(() => {
+    const canvas = document.getElementById("backgroundCanvas") as HTMLCanvasElement;
+    if (!canvas) {
+      console.error("Canvas not found!");
+      return;
     }
-  };
 
-  // Handle form submission for sign-up
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Send the sign-up request to the backend
-    try {
-      const response = await fetch('https://your-backend-url.com/api/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
-        alert('Sign Up successful');
-      } else {
-        alert('Sign Up failed');
-      }
-    } catch (error) {
-      console.error('Error during sign-up:', error);
-      alert('An error occurred');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.error("Canvas context not available!");
+      return;
     }
-  };
 
-  const handleGoogleClick = async () => {
-    // Redirect the user to Google Login
-    window.open(
-      'https://accounts.google.com/o/oauth2/auth?' +
-        new URLSearchParams({
-          client_id: '377073767201-tfl7ct48pr7s06k8pn2gcbuoi1irhf1b.apps.googleusercontent.com',
-          scope: 'email profile',
-          response_type: 'code',
-          access_type: 'offline',
-          prompt: 'consent',
-        }).toString(),
-      '_self'
-    );
-  };
+    const bookImages: HTMLImageElement[] = [];
+    const books = ["wired-lineal-112-book-hover-closed (1).png", "wired-lineal-112-book-hover-closed.png","wired-lineal-112-book-hover-closed (2).png"]; // Replace with your image filenames
+    let loadedImages = 0;
 
-  const handleFacebookClick = async () => {
-    // Redirect the user to Facebook Login
-    window.open(
-      'https://www.facebook.com/v3.3/dialog/oauth?' +
-        new URLSearchParams({
-          client_id: 'YOUR_FACEBOOK_CLIENT_ID',
-          redirect_uri: 'http://localhost:3000',
-          scope: 'email',
-          response_type: 'code',
-          access_type: 'offline',
-          prompt: 'consent',
-        }).toString(),
-      '_self'
-    );
-  };
+    const particles: { x: number; y: number; size: number; dx: number; dy: number; imageIndex: number }[] = [];
+    let mouseX = -100;
+    let mouseY = -100;
 
-  const handleForgotPassword = () => {
-    // Redirect to password recovery page or open modal
-    alert('Redirecting to password recovery...');
-  };
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+
+    // Load book images
+    books.forEach((book, index) => {
+      const img = new Image();
+      img.src = `/assets/${book}`; // Update path to where your images are stored
+      img.onload = () => {
+        loadedImages++;
+        if (loadedImages === books.length) {
+          createParticles(100); // Start once all images are loaded
+          animate();
+        }
+      };
+      bookImages[index] = img;
+    });
+
+    const createParticles = (count: number) => {
+      particles.length = 0;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 40 + 30, // Random size for books
+          dx: (Math.random() - 0.5) * 2,
+          dy: (Math.random() - 0.5) * 2,
+          imageIndex: Math.floor(Math.random() * bookImages.length),
+        });
+      }
+    };
+
+    const drawParticles = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((particle) => {
+        const img = bookImages[particle.imageIndex];
+        ctx.drawImage(img, particle.x, particle.y, particle.size, particle.size);
+      });
+    };
+
+    const updateParticles = () => {
+      particles.forEach((particle) => {
+        particle.x += particle.dx;
+        particle.y += particle.dy;
+
+        // Particle attraction towards the cursor
+        const distX = particle.x - mouseX;
+        const distY = particle.y - mouseY;
+        const dist = Math.sqrt(distX * distX + distY * distY);
+
+        if (dist < 150) {
+          particle.dx += distX / 1500;
+          particle.dy += distY / 1500;
+        }
+
+        // Bounce particles off the edges
+        if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -0.8;
+        if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -0.8;
+      });
+    };
+
+    const animate = () => {
+      drawParticles();
+      updateParticles();
+      requestAnimationFrame(animate);
+    };
+
+    // Mousemove event listener
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    // Resize event listener
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, []);
 
   return (
     <div className={`container ${isSignUp ? 'right-panel-active' : ''}`} id="container">
