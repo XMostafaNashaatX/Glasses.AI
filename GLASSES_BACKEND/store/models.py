@@ -1,5 +1,4 @@
 from django.db import models
-from register.models import Login_user
 
 # Create your models here.
 
@@ -18,30 +17,3 @@ class Book(models.Model):
         return self.title
     
 
-class Order(models.Model):
-    Status_choices = [
-        ('Pending' , 'Pending'),
-        ('Completed' , 'Completed'),
-        ('Cancelled' , 'Cancelled')
-    ]
-
-    item = models.ForeignKey(Book , on_delete= models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    user = models.ForeignKey(Login_user , on_delete=models.CASCADE)
-    order_status = models.CharField(
-        max_length=20 ,
-        choices= Status_choices ,
-        default= 'PENDING'
-    )
-    order_date = models.DateTimeField(auto_now_add=True)
-
-
-    def total_price(self):
-        return self.quantity * self.item.price
-    
-    def __str__(self):
-        return (f"Order by {self.user.username} : ({self.item.title} x {self.quantity})"
-                f"({self.order_status}) -> Total Price : {self.total_price():.2f}$"
-        )
-    
-   

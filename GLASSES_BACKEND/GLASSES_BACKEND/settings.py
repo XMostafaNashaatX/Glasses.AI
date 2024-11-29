@@ -33,10 +33,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "register.apps.RegisterConfig",
-    "ratings.apps.RatingsConfig",
     "store.apps.StoreConfig",
-    # "users.apps.UsersConfig",
+    "ratings.apps.RatingsConfig",
+    "users.apps.UsersConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -46,7 +45,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",
-    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -68,11 +66,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -109,27 +114,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
-ORS_ALLOW_CREDENTIALS = True
 
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Your frontend URL
-]
-
-CORS_ALLOW_HEADERS = [
-    "content-type",  # Allow content-type header for POST requests
-    "X-CSRFToken",  # Allow CSRF token header
-    "Authorization",  # If using authentication headers
-]
-
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "OPTIONS",  # Explicitly allow OPTIONS method for preflight requests
-]
 
 ROOT_URLCONF = "GLASSES_BACKEND.urls"
 
@@ -197,6 +182,20 @@ USE_I18N = True
 
 USE_TZ = True
 
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+]
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "content-type",  # Allow content-type header for POST requests
+    "X-CSRFToken",  # Allow CSRF token header
+    "Authorization",  # If using authentication headers
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -207,3 +206,5 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
