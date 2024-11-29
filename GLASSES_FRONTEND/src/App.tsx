@@ -1,15 +1,15 @@
 // src/App.tsx
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import LoginPage from "./message"; 
-import Home from "./Home";
+import LoginPage from "./message"; // Your Login Page
+import SignupPage from "./Signup"; // Your Signup Page
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/signup" element={<SignupPage />} />
       </Routes>
     </Router>
   );
