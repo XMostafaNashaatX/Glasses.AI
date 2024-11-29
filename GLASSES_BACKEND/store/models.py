@@ -21,7 +21,8 @@ class Book(models.Model):
 class Order(models.Model):
     Status_choices = [
         ('Pending' , 'Pending'),
-        ('Completed' , 'Completed'),
+        ('Shipped', 'Shipped'),
+        ('Delivered', 'Delivered'),
         ('Cancelled' , 'Cancelled')
     ]
 

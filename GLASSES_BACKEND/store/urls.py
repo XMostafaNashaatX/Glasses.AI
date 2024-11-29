@@ -7,3 +7,4 @@ urlpatterns = [
     path('cancel/order/' , Cancel_Order.as_view() , name = 'cancel_order') ,
     path('update/order/' , Update_order.as_view() , name = 'update_order') ,
 ]
+
