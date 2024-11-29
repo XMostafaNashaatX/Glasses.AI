@@ -41,30 +41,26 @@ class BookSearch(APIView):
 
 class Add_Order(APIView):
     def post(self, request):
-        # Step 1: Role check for 'User'
+
         role_check = check_users_role(request, role='User')
         if role_check:
             return role_check
 
-        # Step 2: Retrieve the data from the request body
         book_title = request.data.get("book_title")
         quantity = request.data.get("quantity")
 
-        # Step 3: Validate the required fields
         if not book_title or not quantity:
             return Response(
                 {"error": "Book title and Quantity are required in the request body"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Validate quantity to be greater than 0
         if quantity <= 0:
             return Response(
                 {"error": "Quantity must be greater than 0"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Step 4: Check if the book exists
         books = Book.objects.filter(title__icontains=book_title)
         if not books.exists():
             return Response(
@@ -72,28 +68,22 @@ class Add_Order(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Retrieve the first matching book
         book = books.first()
 
-        # Step 5: Get the authenticated user based on request.user
         try:
-            # Check if the user exists in the Register model
             register_user = Register.objects.get(username=request.user.username)
 
-            # Get the Login_user instance associated with this Register user
-            login_user = register_user.login_user  # Accessing the Login_user through the one-to-one relationship
+            login_user = register_user.login_user 
         except Register.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Step 6: Create the order in the database
+        
         order = Order.objects.create(
-            user=login_user,  # Assigning the Login_user instance
+            user=login_user,  
             item=book,
             quantity=quantity,
             order_status="Pending"
         )
 
-        # Step 7: Serialize the order and send a success response
         serializer = OrderSerializer(order)
         return Response(
             {"message": "Order created successfully", "order": serializer.data},
@@ -104,7 +94,102 @@ class Add_Order(APIView):
 class Cancel_Order(APIView):
 
     def post(self , request):
-        pass 
+        role_check = check_users_role(request, role='User')
+        if role_check:
+            return role_check
+        
+        order_id = request.data.get("order_id")
+
+        if not order_id:
+            return Response(
+                {"error": "Order ID is required in the request body"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+
+        try:
+
+            register_user = Register.objects.get(username=request.user.username)
+
+            login_user = register_user.login_user 
+
+            order = Order.objects.get(id=order_id, user= login_user)
+
+            if order.order_status != "Pending":
+                return Response(
+                    {"error": "Only (Pending) orders can be cancelled"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            order.order_status = "Cancelled"
+            order.save()
+
+            serializer = OrderSerializer(order)
+            return Response(
+                {"message": "Order cancelled successfully", "order": serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Order not found or user is not authorized to cancel this order"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class Update_order(APIView):
-    pass
+    
+    def post(self , request):
+
+        role_check = check_users_role(request, role='User')
+        if role_check:
+            return role_check
+        
+        order_id = request.data.get("order_id")
+        new_quantity = request.data.get("quantity")
+
+        if not order_id:
+            return Response(
+                {"error": "Order ID is required in the request body"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if new_quantity is None:
+            return Response(
+                {"error": "Quantity is required in the request body"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if new_quantity <= 0:
+            return Response(
+                {"error": "Quantity must be greater than 0"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+
+            register_user = Register.objects.get(username=request.user.username)
+
+            login_user = register_user.login_user
+
+            order = Order.objects.get(id=order_id, user= login_user)
+
+            order.quantity = new_quantity
+
+            order.save()
+
+            serializer = OrderSerializer(order)
+            return Response(
+                {"message": "Order updated successfully", "order": serializer.data},
+                status=status.HTTP_200_OK
+            )
+
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Order not found or user is not authorized to update this order"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+
+
+        
