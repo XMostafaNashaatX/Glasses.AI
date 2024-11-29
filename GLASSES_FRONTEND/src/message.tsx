@@ -1,251 +1,169 @@
-// src/Login.tsx
-import React, { useEffect, useState } from "react";
-import "./Login.css";
-import googleIcon from "./assets/google-icon-logo-svgrepo-com.svg";
-import facebookicon from "./assets/facebook-svgrepo-com.svg";
-import Book1 from "./assets/book-education-study-svgrepo-com.png";
-import Book2 from "./assets/book-opened-svgrepo-com.png";
-import Book3 from "./assets/book-svgrepo-com.png";
-import bookOpeningGif from "./assets/book-opening.gif";
+import React, { useState } from 'react';
+import './Login.css';
+import googleIcon from './assets/google-icon-logo-svgrepo-com.svg'; // Import Google SVG
+import facebookIcon from './assets/facebook-svgrepo-com.svg'; // Import Facebook SVG
 
-const LoginPage = () => {
-  const [showForm, setShowForm] = useState(false); // State to control form visibility
+const AuthForm: React.FC = () => {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
 
-  useEffect(() => {
-    // Set a timer to show the form after the GIF animation ends
-    const timer = setTimeout(() => {
-      setShowForm(true);
-    }, 3000); // Adjust duration to match your GIF length (in milliseconds)
+  const handleSignUpClick = () => {
+    setIsSignUp(true);
+  };
 
-    return () => clearTimeout(timer);
-  }, []);
+  const handleSignInClick = () => {
+    setIsSignUp(false);
+  };
 
-  const handleLoginSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // Handle form submission for sign-in
+  const handleSignInSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const form = event.target as HTMLFormElement;
-    const username = form.username.value;
-    const password = form.password.value;
-
+    // Send the login request to the backend
     try {
-      const response = await fetch("https://your-backend-url.com/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const response = await fetch('https://your-backend-url.com/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const token = data.token; // Assuming token is returned in the response
-        console.log("Token received:", token);
-
-        // Store the token
-        localStorage.setItem("authToken", token);
+        const token = data.token; // The backend should return the token
+        localStorage.setItem('authToken', token); // Store the token in localStorage
+        alert('Login successful');
       } else {
-        console.error("Login failed:", response.statusText);
+        alert('Login failed');
       }
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error('Error during login:', error);
+      alert('An error occurred');
     }
   };
 
-  const handleGoogleLogin = async () => {
-    console.log("Google login clicked!");
+  // Handle form submission for sign-up
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Send the sign-up request to the backend
     try {
-      const response = await fetch("https://your-backend-url.com/api/google-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('https://your-backend-url.com/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        const token = data.token;
-        console.log("Google Token received:", token);
-
-        // Store the token
-        localStorage.setItem("authToken", token);
+        const token = data.token; // The backend should return the token
+        localStorage.setItem('authToken', token); // Store the token in localStorage
+        alert('Sign Up successful');
       } else {
-        console.error("Google login failed:", response.statusText);
+        alert('Sign Up failed');
       }
     } catch (error) {
-      console.error("Error during Google login:", error);
+      console.error('Error during sign-up:', error);
+      alert('An error occurred');
     }
   };
 
-  const handleFacebookLogin = async () => {
-    console.log("Facebook login clicked!");
-    try {
-      const response = await fetch("https://your-backend-url.com/api/facebook-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.token;
-        console.log("Facebook Token received:", token);
-
-        // Store the token
-        localStorage.setItem("authToken", token);
-      } else {
-        console.error("Facebook login failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during Facebook login:", error);
-    }
+  const handleGoogleClick = async () => {
+    // Redirect the user to Google Login
+    window.open(
+      'https://accounts.google.com/o/oauth2/auth?' +
+        new URLSearchParams({
+          client_id: '377073767201-tfl7ct48pr7s06k8pn2gcbuoi1irhf1b.apps.googleusercontent.com',
+          scope: 'email profile',
+          response_type: 'code',
+          access_type: 'offline',
+          prompt: 'consent',
+        }).toString(),
+      '_self'
+    );
   };
 
-  useEffect(() => {
-    const canvas = document.getElementById("backgroundCanvas") as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("Canvas not found!");
-      return;
-    }
+  const handleFacebookClick = async () => {
+    // Redirect the user to Facebook Login
+    window.open(
+      'https://www.facebook.com/v3.3/dialog/oauth?' +
+        new URLSearchParams({
+          client_id: 'YOUR_FACEBOOK_CLIENT_ID',
+          redirect_uri: 'http://localhost:3000',
+          scope: 'email',
+          response_type: 'code',
+          access_type: 'offline',
+          prompt: 'consent',
+        }).toString(),
+      '_self'
+    );
+  };
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      console.error("Canvas context not available!");
-      return;
-    }
-
-    const bookImages: HTMLImageElement[] = [];
-    const books = [
-      "wired-lineal-112-book-hover-closed (1).png",
-      "wired-lineal-112-book-hover-closed.png",
-      "wired-lineal-112-book-hover-closed (2).png",
-    ];
-    let loadedImages = 0;
-
-    const particles: { x: number; y: number; size: number; dx: number; dy: number; imageIndex: number }[] = [];
-    let mouseX = -100;
-    let mouseY = -100;
-
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-
-    // Load book images
-    books.forEach((book, index) => {
-      const img = new Image();
-      img.src = `/assets/${book}`;
-      img.onload = () => {
-        loadedImages++;
-        if (loadedImages === books.length) {
-          createParticles(100); // Start once all images are loaded
-          animate();
-        }
-      };
-      bookImages[index] = img;
-    });
-
-    const createParticles = (count: number) => {
-      particles.length = 0;
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 40 + 30,
-          dx: (Math.random() - 0.5) * 2,
-          dy: (Math.random() - 0.5) * 2,
-          imageIndex: Math.floor(Math.random() * bookImages.length),
-        });
-      }
-    };
-
-    const drawParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((particle) => {
-        const img = bookImages[particle.imageIndex];
-        ctx.drawImage(img, particle.x, particle.y, particle.size, particle.size);
-      });
-    };
-
-    const updateParticles = () => {
-      particles.forEach((particle) => {
-        particle.x += particle.dx;
-        particle.y += particle.dy;
-
-        // Particle attraction towards the cursor
-        const distX = particle.x - mouseX;
-        const distY = particle.y - mouseY;
-        const dist = Math.sqrt(distX * distX + distY * distY);
-
-        if (dist < 150) {
-          particle.dx += distX / 1500;
-          particle.dy += distY / 1500;
-        }
-
-        // Bounce particles off the edges
-        if (particle.x < 0 || particle.x > canvas.width) particle.dx *= -0.8;
-        if (particle.y < 0 || particle.y > canvas.height) particle.dy *= -0.8;
-      });
-    };
-
-    const animate = () => {
-      drawParticles();
-      updateParticles();
-      requestAnimationFrame(animate);
-    };
-
-    // Mousemove event listener
-    const handleMouseMove = (event: MouseEvent) => {
-      mouseX = event.clientX;
-      mouseY = event.clientY;
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-
-    // Resize event listener
-    window.addEventListener("resize", resizeCanvas);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("resize", resizeCanvas);
-    };
-  }, []);
+  const handleForgotPassword = () => {
+    // Redirect to password recovery page or open modal
+    alert('Redirecting to password recovery...');
+  };
 
   return (
-    <>
-      <canvas id="backgroundCanvas"></canvas>
-      <div className="gif-container">
-        {!showForm && (
-          <img src={bookOpeningGif} alt="Opening Animation" className="intro-gif" />
-        )}
+    <div className={`container ${isSignUp ? 'right-panel-active' : ''}`} id="container">
+      <div className="form-container sign-up-container">
+        <form onSubmit={handleSignUpSubmit}>
+          <h1>Create Account</h1>
+          <div className="social-container">
+            <a href="#" className="social" onClick={handleGoogleClick}>
+              <img src={googleIcon} alt="Google" style={{ width: '4em', height: '3.5em' }} />
+            </a>
+            <a href="#" className="social" onClick={handleFacebookClick}>
+              <img src={facebookIcon} alt="Facebook" style={{ width: '4em', height: '3.5em' }} />
+            </a>
+          </div>
+          <span>or use your email for registration</span>
+          <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <button type="submit">Sign Up</button>
+        </form>
       </div>
-      <div className="login-container">
-        {showForm ? (
-          <>
-            <h1>Welcome to Glasses.AI</h1>
-            <p>Discover, review, and love your favorite books</p>
-            <form className="login-form" onSubmit={handleLoginSubmit}>
-              <input type="text" name="username" placeholder="Username" required />
-              <input type="password" name="password" placeholder="Password" required />
-              <button type="submit" className="submit-button">
-                Login
-              </button>
-            </form>
-            <div className="divider">OR</div>
-            <div className="button-container">
-              <button className="google-login" onClick={handleGoogleLogin}>
-                <img src={googleIcon} alt="Google Logo" />
-                Login with Google
-              </button>
-              <button className="facebook-login" onClick={handleFacebookLogin}>
-                <img src={facebookicon} alt="Facebook Logo" />
-                Login with Facebook
-              </button>
-            </div>
-            <p>
-              Don't have an account? <a href="/signup">Sign Up</a>
-            </p>
-          </>
-        ) : null}
+      <div className="form-container sign-in-container">
+        <form onSubmit={handleSignInSubmit}>
+          <h1>Sign in</h1>
+          <div className="social-container" style={{ marginBottom: '10px' }}>
+            <a href="#" className="social" onClick={handleGoogleClick}>
+              <img src={googleIcon} alt="Google" style={{ width: '4em', height: '3.5em' }} />
+            </a>
+            <a href="#" className="social" onClick={handleFacebookClick}>
+              <img src={facebookIcon} alt="Facebook" style={{ width: '4em', height: '3.5em' }} />
+            </a>
+          </div>
+          <span>or use your account</span>
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <a href="#" onClick={handleForgotPassword}>Forgot your password?</a>
+          <button type="submit">Sign In</button>
+        </form>
       </div>
-    </>
+      <div className="overlay-container">
+        <div className="overlay">
+          <div className="overlay-panel overlay-left">
+            <h1>Welcome Back!</h1>
+            <p>To keep connected with us please login with your personal info</p>
+            <button className="ghost" onClick={handleSignInClick}>Sign In</button>
+          </div>
+          <div className="overlay-panel overlay-right">
+            <h1>Welcome to Glasses.AI!</h1>
+            <p>Enter your personal details to start reviewing and discovering amazing books</p>
+            <button className="ghost" onClick={handleSignUpClick}>Sign Up</button>
+          </div>
+        </div>
+      </div>
+      <footer></footer>
+    </div>
   );
 };
 
-export default LoginPage;
+export default AuthForm;
