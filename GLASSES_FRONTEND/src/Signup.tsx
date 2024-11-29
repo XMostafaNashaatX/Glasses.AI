@@ -8,12 +8,86 @@ import Book2 from "./assets/book-opened-svgrepo-com.png";
 import Book3 from "./assets/book-svgrepo-com.png";
 
 const SignupPage = () => {
-  const handleGoogleSignup = () => {
-    console.log("Google signup clicked!");
+  const handleFormSignup = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const form = event.target as HTMLFormElement;
+    const email = form.email.value;
+    const username = form.username.value;
+    const password = form.password.value;
+    const confirmPassword = form.confirmPassword.value;
+
+    if (password !== confirmPassword) {
+      console.error("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://your-backend-url.com/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.token; // Assuming the token is returned
+        console.log("Signup Token received:", token);
+
+        // Store the token
+        localStorage.setItem("authToken", token);
+      } else {
+        console.error("Signup failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during signup:", error);
+    }
   };
 
-  const handleFacebookSignup = () => {
+  const handleGoogleSignup = async () => {
+    console.log("Google signup clicked!");
+    try {
+      const response = await fetch("https://your-backend-url.com/api/google-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.token;
+        console.log("Google Signup Token received:", token);
+
+        // Store the token
+        localStorage.setItem("authToken", token);
+      } else {
+        console.error("Google signup failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during Google signup:", error);
+    }
+  };
+
+  const handleFacebookSignup = async () => {
     console.log("Facebook signup clicked!");
+    try {
+      const response = await fetch("https://your-backend-url.com/api/facebook-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const token = data.token;
+        console.log("Facebook Signup Token received:", token);
+
+        // Store the token
+        localStorage.setItem("authToken", token);
+      } else {
+        console.error("Facebook signup failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during Facebook signup:", error);
+    }
   };
 
   useEffect(() => {
@@ -30,7 +104,11 @@ const SignupPage = () => {
     }
 
     const bookImages: HTMLImageElement[] = [];
-    const books = ["wired-lineal-112-book-hover-closed (1).png", "wired-lineal-112-book-hover-closed.png","wired-lineal-112-book-hover-closed (2).png"];
+    const books = [
+      "wired-lineal-112-book-hover-closed (1).png",
+      "wired-lineal-112-book-hover-closed.png",
+      "wired-lineal-112-book-hover-closed (2).png",
+    ];
     let loadedImages = 0;
 
     const particles: { x: number; y: number; size: number; dx: number; dy: number; imageIndex: number }[] = [];
@@ -123,11 +201,11 @@ const SignupPage = () => {
       <div className="login-container">
         <h1>Join Glasses.AI</h1>
         <p>Start your journey of discovering amazing books</p>
-        <form className="login-form">
-          <input type="email" placeholder="Email Address" required />
-          <input type="text" placeholder="Username" required />
-          <input type="password" placeholder="Password" required />
-          <input type="password" placeholder="Confirm Password" required />
+        <form className="login-form" onSubmit={handleFormSignup}>
+          <input type="email" name="email" placeholder="Email Address" required />
+          <input type="text" name="username" placeholder="Username" required />
+          <input type="password" name="password" placeholder="Password" required />
+          <input type="password" name="confirmPassword" placeholder="Confirm Password" required />
           <button type="submit" className="submit-button">
             Sign Up
           </button>
