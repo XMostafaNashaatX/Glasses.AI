@@ -1,18 +1,15 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import JsonResponse
 from rest_framework.views import APIView
-from rest_framework import status, generics
-from .models import Login
-from .serializer import LoginSerializer, UserSerializer
 from rest_framework.response import Response
-from rest_framework.exceptions import ParseError
+from rest_framework import status, generics
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.middleware.csrf import get_token
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.http import JsonResponse
+from .serializer import LoginSerializer, UserSerializer
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
 
 
 class LoginView(APIView):
@@ -20,14 +17,16 @@ class LoginView(APIView):
         username = request.data.get("username")
         password = request.data.get("password")
 
-        # Authenticate the user
+        if not username or not password:
+            return Response(
+                {"error": "Username and password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Log the user in (create a session)
             login(request, user)
-
-            # Return a CSRF token to the frontend
             csrf_token = get_token(request)
             return Response(
                 {"message": "Login successful", "csrf_token": csrf_token},
@@ -42,11 +41,20 @@ class LoginView(APIView):
 
 def csrf(request):
     """Generate and return a CSRF token."""
-    csrf_token = get_token(request)
-    return JsonResponse({"csrf_token": csrf_token})
+    try:
+        csrf_token = get_token(request)
+        return JsonResponse({"csrf_token": csrf_token})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 class UserCreate(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
