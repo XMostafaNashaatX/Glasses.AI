@@ -1,0 +1,168 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: white;
+  z-index: 3;
+}
+
+.home-container {
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 3;
+}
+
+.home-container.light {
+  background-color: #f4f4f4;
+  color: black;
+  z-index: 3;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1f1f1f;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar.light {
+  background-color: #f4f4f4;
+  color: black;
+}
+
+.navbar-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffab00;
+}
+
+.navbar-logo span {
+  color: #f4f4f4;
+}
+
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-links li {
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.navbar-links li:hover {
+  color: #ffab00;
+}
+
+.theme-toggle {
+  background-color: #ffab00;
+  color: #1f1f1f;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+  background-color: #ffcc33;
+}
+
+.banner {
+  background: url('https://source.unsplash.com/1600x400/?library,books') no-repeat center center/cover;
+  color: white;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: center;
+  margin: 10px auto;
+  gap: 20px;
+}
+
+.search-bar input {
+  width: 60%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background-color: #1f1f1f;
+  color: white;
+}
+
+.search-bar input.light {
+  background-color: white;
+  color: black;
+}
+
+.search-bar button {
+  padding: 10px 20px;
+  background-color: #ffab00;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.book-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.book-item {
+  background: #1f1f1f;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.book-item.light {
+  background: white;
+  color: black;
+}
+
+.book-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.rating {
+  margin-top: 10px;
+}
+
+.star {
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffab00;
+}
+
+
+@media (max-width: 768px) {
+  .book-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .book-list {
+    grid-template-columns: 1fr;
+  }
+}
