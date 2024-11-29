@@ -42,7 +42,7 @@ const LoginPage = () => {
     }
 
     const bookImages: HTMLImageElement[] = [];
-    const books = ["wired-lineal-112-book-hover-closed (1).png", "wired-lineal-112-book-hover-closed.png","wired-lineal-112-book-hover-closed (2).png"]; // Replace with your image filenames
+    const books = ["wired-lineal-112-book-hover-closed (1).png", "wired-lineal-112-book-hover-closed.png", "wired-lineal-112-book-hover-closed (2).png"]; // Replace with your image filenames
     let loadedImages = 0;
 
     const particles: { x: number; y: number; size: number; dx: number; dy: number; imageIndex: number }[] = [];
