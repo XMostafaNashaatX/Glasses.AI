@@ -1,6 +1,6 @@
 from django.db import models
 from register.models import Login_user
-
+from django.contrib.auth.models import User
 # Create your models here.
 
 
@@ -28,7 +28,7 @@ class Order(models.Model):
 
     item = models.ForeignKey(Book , on_delete= models.CASCADE)
     quantity = models.PositiveIntegerField()
-    user = models.ForeignKey(Login_user , on_delete=models.CASCADE)
+    user = models.ForeignKey(User , on_delete=models.CASCADE)
     order_status = models.CharField(
         max_length=20 ,
         choices= Status_choices ,

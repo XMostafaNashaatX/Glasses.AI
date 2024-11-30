@@ -2,12 +2,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status  , generics
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 from .models import *
 from .serializers import *
 from register.serializers import *
 from register.models import *
 from register.views import *
-from register.utils import check_users_role
+from users.utils import check_users_role
 
 
 class BookSearch(APIView):
@@ -18,7 +19,8 @@ class BookSearch(APIView):
 
         if role_check:
             return role_check
-
+             
+        
         title_query = request.data.get('title', '').strip()
 
         if not title_query:
@@ -70,15 +72,8 @@ class Add_Order(APIView):
 
         book = books.first()
 
-        try:
-            register_user = Register.objects.get(username=request.user.username)
-
-            login_user = register_user.login_user 
-        except Register.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        
         order = Order.objects.create(
-            user=login_user,  
+            user=request.user,  
             item=book,
             quantity=quantity,
             order_status="Pending"
@@ -109,11 +104,7 @@ class Cancel_Order(APIView):
 
         try:
 
-            register_user = Register.objects.get(username=request.user.username)
-
-            login_user = register_user.login_user 
-
-            order = Order.objects.get(id=order_id, user= login_user)
+            order = Order.objects.get(id=order_id, user= request.user)
 
             if order.order_status != "Pending":
                 return Response(
@@ -168,11 +159,7 @@ class Update_order(APIView):
         
         try:
 
-            register_user = Register.objects.get(username=request.user.username)
-
-            login_user = register_user.login_user
-
-            order = Order.objects.get(id=order_id, user= login_user)
+            order = Order.objects.get(id=order_id, user= request.user)
 
             order.quantity = new_quantity
 

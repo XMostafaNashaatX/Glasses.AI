@@ -33,8 +33,6 @@ class RegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class LoginView(APIView):
 
     def post(self , request):
@@ -66,4 +64,3 @@ class LoginView(APIView):
         except Login_user.DoesNotExist:
 
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
