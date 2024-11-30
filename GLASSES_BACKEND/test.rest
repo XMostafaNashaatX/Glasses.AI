@@ -1,0 +1,66 @@
+POST http://127.0.0.1:8000/users/registration
+Content-Type: application/json
+
+{
+    "username": "abdohisham",
+    "password": "Secure123!",
+    "email": "abdo@gmail.com"
+}
+
+
+POST http://127.0.0.1:8000/users/login/
+Content-Type: application/json
+
+{
+    "username": "abdohisham",
+    "password": "Secure123!"
+}
+
+
+POST http://127.0.0.1:8000/stores/search/
+Content-Type: application/json
+X-CSRFToken: Bearer <your_token_here>
+
+{
+    "title": "Clara Callan"
+}
+
+
+POST http://127.0.0.1:8000/stores/Add/order/
+Content-Type: application/json
+X-CSRFToken: Bearer <your_token_here>
+
+{
+    "books": [
+        {
+            "book_id": 1,
+            "quantity": 4
+        },
+        {
+            "book_id": 2,
+            "quantity": 3
+        }
+    ]
+}
+
+
+
+POST http://127.0.0.1:8000/stores/cancel/order/
+Content-Type: application/json
+X-CSRFToken: Bearer <your_token_here>
+
+{
+    "order_id": 10
+}
+
+
+POST http://127.0.0.1:8000/stores/update/order/
+Content-Type: application/json
+X-CSRFToken: Bearer <your_token_here>
+
+{
+    "order_id": 10,
+    "book_id": 1,
+    "quantity": 5
+}
+
