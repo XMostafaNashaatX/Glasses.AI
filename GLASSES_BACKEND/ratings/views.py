@@ -52,6 +52,11 @@ class RatingViewSet(viewsets.ModelViewSet):
 
 @api_view(["POST"])
 def rate_book(request):
+
+    role_check = check_users_role(request, role="User")
+
+    if role_check:
+        return role_check
     # Ensure that the user is logged in
     if not request.user.is_authenticated:
         return Response(
@@ -107,6 +112,11 @@ def update_rating(request, book_id):
     """
     Update an existing rating for a specific book by the current user.
     """
+
+    role_check = check_users_role(request, role="User")
+
+    if role_check:
+        return role_check
     # Ensure the user is authenticated
     if not request.user.is_authenticated:
         return Response(
@@ -146,6 +156,11 @@ def delete_rating(request, book_id):
     Delete a rating for a specific book by the current user.
     Only the user who rated the book can delete their own rating.
     """
+
+    role_check = check_users_role(request, role="User")
+
+    if role_check:
+        return role_check
     # Check if the user is authenticated
     if not request.user.is_authenticated:
         return Response(
