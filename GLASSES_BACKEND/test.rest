@@ -33,11 +33,11 @@ X-CSRFToken: Bearer <your_token_here>
 {
     "books": [
         {
-            "book_title": "Clara Callan",
+            "book_id": 1,
             "quantity": 4
         },
         {
-            "book_title": "Classical Mythology",
+            "book_id": 2,
             "quantity": 3
         }
     ]
@@ -60,7 +60,7 @@ X-CSRFToken: Bearer <your_token_here>
 
 {
     "order_id": 10,
-    "book_title": "Clara Callan",
-    "quantity": 3
+    "book_id": 1,
+    "quantity": 5
 }
 

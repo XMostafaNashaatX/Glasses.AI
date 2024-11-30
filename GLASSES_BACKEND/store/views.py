@@ -65,10 +65,10 @@ class Add_Order(APIView):
 
         order_items = []
         for book_data in books_data:
-            book_title = book_data.get("book_title")
+            book_id = book_data.get("book_id")
             quantity = book_data.get("quantity")
 
-            if not book_title or quantity is None:
+            if not book_id or quantity is None:
                 return Response(
                     {"error": "Book title and quantity are required for each item"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -80,10 +80,10 @@ class Add_Order(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            books = Book.objects.filter(title__icontains=book_title)
+            books = Book.objects.filter(id = book_id)
             if not books.exists():
                 return Response(
-                    {"error": f"No books found with title '{book_title}'"},
+                    {"error": f"No books found with this Id '{book_id}'"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
@@ -101,7 +101,6 @@ class Add_Order(APIView):
             {"message": "Order created successfully", "order": serializer.data},
             status=status.HTTP_201_CREATED
         )
-
 
 
 class Cancel_Order(APIView):
@@ -147,15 +146,13 @@ class Cancel_Order(APIView):
 
 
 class Update_order(APIView):
-    
-    def post(self , request):
-
+    def post(self, request):
         role_check = check_users_role(request, role='User')
         if role_check:
             return role_check
-        
+
         order_id = request.data.get("order_id")
-        book_title = request.data.get("book_title")
+        book_id = request.data.get("book_id")  
         new_quantity = request.data.get("quantity")
 
         if not order_id:
@@ -163,33 +160,34 @@ class Update_order(APIView):
                 {"error": "Order ID is required in the request body"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        if not book_title:
+
+        if not book_id:
             return Response(
-                {"error": "Book title is required to update the quantity"},
+                {"error": "Book ID is required to update the quantity"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if new_quantity is None:
             return Response(
                 {"error": "Quantity is required in the request body"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if new_quantity <= 0:
             return Response(
                 {"error": "Quantity must be greater than 0"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
 
-            order = Order.objects.get(id=order_id, user= request.user)
-            order_item = order.order_items.filter(item__title__icontains=book_title).first()
+            order = Order.objects.get(id=order_id, user=request.user)
+            
+            order_item = order.order_items.filter(item__id=book_id).first()
 
             if not order_item:
                 return Response(
-                    {"error": f"No item with title '{book_title}' found in this order"},
+                    {"error": f"No item with Book ID '{book_id}' found in this order"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
@@ -209,6 +207,7 @@ class Update_order(APIView):
                 {"error": "Order not found or user is not authorized to update this order"},
                 status=status.HTTP_404_NOT_FOUND
             )
+
         
 
 
