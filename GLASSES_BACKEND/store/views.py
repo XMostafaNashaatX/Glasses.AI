@@ -94,7 +94,7 @@ class Add_Order(APIView):
         order = Order.objects.create(user=request.user, order_status="Pending")
 
         for book, quantity in order_items:
-            OrderItem.objects.create(order=order, item=book, quantity=quantity)  # Pass 'item' instead of 'book'
+            OrderItem.objects.create(order=order, item=book, quantity=quantity)  
 
         serializer = OrderSerializer(order)
         return Response(
