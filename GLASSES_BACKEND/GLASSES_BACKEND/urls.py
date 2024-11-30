@@ -19,10 +19,11 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api-auth/' , include("rest_framework.urls")),
-    path('stores/' , include('store.urls')),
-    path('' , include('register.urls')),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("stores/", include("store.urls")),
+    path("", include("register.urls")),
     path("users/", include("users.urls")),
     path("ratings/", include("ratings.urls")),
+    path("payments/", include("payments.urls")),
 ]

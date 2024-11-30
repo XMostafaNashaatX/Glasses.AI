@@ -32,17 +32,24 @@ class LoginView(APIView):
             if user.is_staff:
 
                 return Response(
-                    {"message": "Login successful", "csrf_token": csrf_token, "redirect_to": "/admin_dashboard/"},
-                    status=status.HTTP_200_OK,
-                )
-            
-            else:
-                return Response(
-                    {"message": "Login successful", "csrf_token": csrf_token, "redirect_to": "/user_dashboard/"},
+                    {
+                        "message": "Login successful",
+                        "csrf_token": csrf_token,
+                        "redirect_to": "/admin_dashboard/",
+                    },
                     status=status.HTTP_200_OK,
                 )
 
-            
+            else:
+                return Response(
+                    {
+                        "message": "Login successful",
+                        "csrf_token": csrf_token,
+                        "redirect_to": "/user_dashboard/",
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
         else:
             return Response(
                 {"error": "Invalid username or password"},
@@ -60,7 +67,7 @@ def csrf(request):
 
 
 class UserCreate(generics.CreateAPIView):
-    
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)

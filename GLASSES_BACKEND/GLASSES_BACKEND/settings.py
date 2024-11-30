@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
+from paypalrestsdk import payments
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,19 +35,22 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'register.apps.RegisterConfig',
-    'ratings.apps.RatingsConfig',
-    'store.apps.StoreConfig',
-    'users.apps.UsersConfig',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'corsheaders',
-    'rest_framework_simplejwt',
+    "register.apps.RegisterConfig",
+    "ratings.apps.RatingsConfig",
+    "store.apps.StoreConfig",
+    "users.apps.UsersConfig",
+    # "payments.apps.PaymentsConfig",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "corsheaders",
+    "rest_framework_simplejwt",
+    "payments",
+    # "users",
 ]
 
 MIDDLEWARE = [
@@ -147,7 +152,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "glasses_db",
         "USER": "root",
-        "PASSWORD": "1234",
+        "PASSWORD": "abdo1234",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
@@ -210,3 +215,12 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
+
+PAYPAL_CLIENT_ID = (
+    "ARY_XSs5XPk3oAvuYGyfuxLGu9ovW4rvjFRYGd-KAsjq6oXr2Mjh4-8R6Nf_Hubf5zO_tTkFOQm-yqLg"
+)
+PAYPAL_CLIENT_SECRET = (
+    "EFm_DYKkVf__hJv_ef-lpVQsJXrctt0mNv9aJbqKDQrTsMll76bdaxjZw6X363XOw5QYH-21blHWNr8O"
+)
+PAYPAL_MODE = "sandbox"
