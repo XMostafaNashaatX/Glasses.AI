@@ -42,48 +42,66 @@ class BookSearch(APIView):
 
 
 class Add_Order(APIView):
+    
     def post(self, request):
 
         role_check = check_users_role(request, role='User')
         if role_check:
             return role_check
 
-        book_title = request.data.get("book_title")
-        quantity = request.data.get("quantity")
-
-        if not book_title or not quantity:
+        books_data = request.data.get("books")  
+        
+        if not books_data:
             return Response(
-                {"error": "Book title and Quantity are required in the request body"},
+                {"error": "Books data is required in the request body"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        if quantity <= 0:
+        if len(books_data) == 0:
             return Response(
-                {"error": "Quantity must be greater than 0"},
+                {"error": "Books data should contain at least one item"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        books = Book.objects.filter(title__icontains=book_title)
-        if not books.exists():
-            return Response(
-                {"error": "No books found matching the given title"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        order_items = []
+        for book_data in books_data:
+            book_title = book_data.get("book_title")
+            quantity = book_data.get("quantity")
 
-        book = books.first()
+            if not book_title or quantity is None:
+                return Response(
+                    {"error": "Book title and quantity are required for each item"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if quantity <= 0:
+                return Response(
+                    {"error": "Quantity must be greater than 0 for each item"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            books = Book.objects.filter(title__icontains=book_title)
+            if not books.exists():
+                return Response(
+                    {"error": f"No books found with title '{book_title}'"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
-        order = Order.objects.create(
-            user=request.user,  
-            item=book,
-            quantity=quantity,
-            order_status="Pending"
-        )
+            book = books.first() 
+            order_items.append((book, quantity))
+
+
+        order = Order.objects.create(user=request.user, order_status="Pending")
+
+        for book, quantity in order_items:
+            OrderItem.objects.create(order=order, item=book, quantity=quantity)  # Pass 'item' instead of 'book'
 
         serializer = OrderSerializer(order)
         return Response(
             {"message": "Order created successfully", "order": serializer.data},
             status=status.HTTP_201_CREATED
         )
+
 
 
 class Cancel_Order(APIView):
@@ -137,11 +155,18 @@ class Update_order(APIView):
             return role_check
         
         order_id = request.data.get("order_id")
+        book_title = request.data.get("book_title")
         new_quantity = request.data.get("quantity")
 
         if not order_id:
             return Response(
                 {"error": "Order ID is required in the request body"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not book_title:
+            return Response(
+                {"error": "Book title is required to update the quantity"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -160,14 +185,22 @@ class Update_order(APIView):
         try:
 
             order = Order.objects.get(id=order_id, user= request.user)
+            order_item = order.order_items.filter(item__title__icontains=book_title).first()
 
-            order.quantity = new_quantity
+            if not order_item:
+                return Response(
+                    {"error": f"No item with title '{book_title}' found in this order"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            order_item.quantity = new_quantity
+            order_item.save()
 
             order.save()
 
             serializer = OrderSerializer(order)
             return Response(
-                {"message": "Order updated successfully", "order": serializer.data},
+                {"message": "Order item updated successfully", "order": serializer.data},
                 status=status.HTTP_200_OK
             )
 
