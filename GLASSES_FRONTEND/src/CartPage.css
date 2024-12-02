@@ -1,0 +1,167 @@
+:root {
+    --primary: #ef4444;
+    --primary-light: #f87171;
+    --dark: #1c212e;
+    --grey-dark: #3f4656;
+    --grey: #6c7486;
+    --grey-light: #cdd9ed;
+    --white: #fff;
+    --green: #16bf78;
+    --sand: #fbbf24;
+    --black-bg: #0d0d0d; /* Updated black background */
+    --light-text: #f4f4f4; /* Light color for text on dark background */
+    --accent-text: #a1a1a1; /* Lighter color for less important text */
+  }
+  
+  body {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--black-bg); /* Set body background to black */
+    color: var(--light-text); /* Set text color to light for readability */
+  }
+  
+  .cart-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .cart-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .cart-header h1 {
+    color: var(--white); /* Change header text to white */
+    font-size: 36px;
+    font-weight: bold;
+  }
+  
+  .cart-header p {
+    color: var(--accent-text); /* Light grey color for description */
+    font-size: 18px;
+  }
+  
+  .cart-section {
+    background: var(--white);
+    border-radius: 12px; /* Slightly more rounded corners for a modern look */
+    padding: 30px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Darker shadow for a more professional feel */
+    width: 100%;
+    max-width: 700px; /* Increased width for better content display */
+  }
+  
+  .cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--grey-light);
+    padding-bottom: 12px; /* Slightly more space between items */
+    margin-bottom: 15px;
+  }
+  
+  .item-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .item-name {
+    font-weight: bold;
+    font-size: 18px; /* Larger font size for item name */
+    color: var(--dark);
+  }
+  
+  .item-price {
+    font-size: 16px;
+    color: var(--grey);
+  }
+  
+  .item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* More spacing between buttons and quantity */
+  }
+  
+  .quantity-button {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 6px; /* Slightly rounded edges for buttons */
+    padding: 8px 16px; /* Increased padding for a more clickable feel */
+    cursor: pointer;
+    font-size: 18px; /* Larger font size for buttons */
+  }
+  
+  .quantity {
+    font-size: 18px; /* Increased font size for readability */
+    color: var(--dark);
+  }
+  
+  .remove-item {
+    background: transparent;
+    color: var(--primary);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: underline;
+  }
+  
+  .remove-item:hover {
+    color: var(--primary-light);
+  }
+  
+  .cart-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px; /* Increased margin for separation */
+  }
+  
+  .cart-summary p {
+    font-size: 20px; /* Larger font for better visibility */
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: var(--light-text); /* Ensures price is clearly visible */
+  }
+  
+  .total-price-text {
+    color: #000; /* Set the total price text to black */
+    font-size: 24px; /* Optional: Adjust size to make it more prominent */
+    font-weight: 600; /* Optional: Make the price bold */
+  }
+  
+  .checkout-button {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 12px 24px;
+    font-size: 20px;
+    border-radius: 6px; /* Slightly larger rounded corners */
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .checkout-button:hover {
+    background: var(--primary-light);
+  }
+  
+  .cart-footer {
+    margin-top: 50px;
+    text-align: center;
+    color: var(--grey);
+  }
+  
+  .cart-footer p {
+    font-size: 14px;
+  }
+  

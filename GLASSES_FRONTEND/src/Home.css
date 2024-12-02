@@ -1,168 +1,526 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: white;
-  z-index: 3;
+  background-color: #f8f9fa;
+  color: #333333;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-y: scroll; /* Keep vertical scrolling */
+  -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
+  scrollbar-width: none;  /* Hide scrollbar in Firefox */
 }
 
-.home-container {
-  padding: 20px;
+body::-webkit-scrollbar {
+  display: none;  /* Hide scrollbar in Chrome, Safari, and Edge */
+}
+
+
+/* Homepage Container */
+.homepage {
+  width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  z-index: 3;
+  background-color: #f8f9fa;
 }
 
-.home-container.light {
-  background-color: #f4f4f4;
-  color: black;
-  z-index: 3;
-}
-
+/* Navbar */
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #1f1f1f;
-  padding: 10px 20px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #007bff; /* Blue navbar background */
+  color: #ffffff; /* White text color */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
   z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.navbar.light {
-  background-color: #f4f4f4;
-  color: black;
-}
-
-.navbar-logo {
+.logo {
   font-size: 24px;
   font-weight: bold;
-  color: #ffab00;
-}
-
-.navbar-logo span {
-  color: #f4f4f4;
-}
-
-.navbar-links {
-  list-style: none;
-  display: flex;
-  gap: 20px;
-}
-
-.navbar-links li {
-  cursor: pointer;
-  transition: color 0.3s;
-}
-
-.navbar-links li:hover {
-  color: #ffab00;
-}
-
-.theme-toggle {
-  background-color: #ffab00;
-  color: #1f1f1f;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.theme-toggle:hover {
-  background-color: #ffcc33;
-}
-
-.banner {
-  background: url('https://source.unsplash.com/1600x400/?library,books') no-repeat center center/cover;
-  color: white;
-  padding: 60px 20px;
-  text-align: center;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .search-bar {
   display: flex;
-  justify-content: center;
-  margin: 10px auto;
-  gap: 20px;
+  align-items: center;
+  gap: 10px;
 }
 
 .search-bar input {
-  width: 60%;
-  padding: 10px;
+  padding: 5px;
   font-size: 16px;
-  border: 1px solid #555;
+  border: none;
   border-radius: 4px;
-  background-color: #1f1f1f;
-  color: white;
-}
-
-.search-bar input.light {
-  background-color: white;
-  color: black;
+  width: 200px;
+  background-color: #ffffff;
+  color: #333333;
 }
 
 .search-bar button {
-  padding: 10px 20px;
-  background-color: #ffab00;
-  color: black;
+  padding: 6px 12px;
+  background-color: #28a745; /* Green button */
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.book-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+.nav-links {
+  display: flex;
+  align-items: center;
 }
 
-.book-item {
-  background: #1f1f1f;
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  transition: transform 0.3s;
+.nav-links a {
+  margin: 0 10px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
 }
 
-.book-item.light {
-  background: white;
-  color: black;
+.nav-links a:hover {
+  text-decoration: underline;
 }
 
-.book-image {
+.cart-icon button {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #dc3545; /* Red cart count background */
+  color: #ffffff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+/* Sort Options Styling */
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Add space between label and select */
+  background-color: #007bff00; /* Background color to match the theme */
+  padding: 10px 15px;
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0); /* Light shadow for depth */
+  width: fit-content; /* Make the container width adjust to content */
+  margin: 20px auto; /* Center the container */
+}
+
+.sort-options label {
+  font-size: 16px;
+  color: #ffffff; /* White color for label text */
+  font-weight: 500; /* Medium boldness */
+}
+
+.sort-options select {
+  padding: 8px 12px;
+  font-size: 16px;
+  color: #333333; /* Dark text color for the select options */
+  background-color: #ffffff; /* White background for select box */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 5px; /* Rounded corners for the select box */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+}
+
+.sort-options select:hover {
+  border-color: #007bff; /* Blue border on hover */
+}
+
+.sort-options select:focus {
+  outline: none; /* Remove default outline */
+  border-color: #0056b3; /* Darker border when focused */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Glow effect on focus */
+}
+
+
+/* Hero Section */
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #87a2bd;
   width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 5px;
+  height: 250px;
 }
 
-.rating {
+.hero-content {
+  display: flex;
+  align-items: center;
+  width: 90%;
+  padding: 0 20px;
+}
+
+.hero-content img {
+  width: 35%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.hero-details {
+  margin-left: 20px;
+  flex: 1;
+}
+
+.hero-details h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #333333;
+}
+
+.hero-details p {
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.trailer-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Featured Section */
+.featured {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 700px 10px 50px 10px; /* Reduced top margin to 50px */
+  padding: 0;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.featured h2 {
+  font-size: 28px;
+  text-align: center;
+  color: #333333;
+  margin: 20px 0;
+}
+
+.featured-books-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 10px 0;
+  width: 100%;
+}
+
+.featured-books {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.5s ease-in-out;
+}
+
+.book-card {
+  flex: 0 0 300px; /* Set a fixed width for the card */
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.book-card img {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  object-fit: fill;
+}
+
+.book-card p {
+  margin-top: 5px;
+  font-size: 20px;
+  color: hsl(0, 0%, 20%);
+  height: auto; /* Allow text to grow with the content */
+  line-height: 1; /* Add line height to create spacing between lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 2;
+  box-orient: vertical;
+  text-align: center; /* Center the text horizontally */
+  display: flex; /* Change display to flex */
+  justify-content: center; /* Center text horizontally within flex container */
+  align-items: center; /* Center text vertically if needed */
+  padding: -5px; /* Add padding for extra space around text */
+}
+
+
+/* Featured Section Scrollbar */
+.featured-books-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.featured-books-container::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 0px;
+}
+
+.featured-books-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+/* Swipe Buttons */
+.swipe-button {
+  position: absolute;
+  top: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #007bff;
+  border: none;
+  border-radius: 10%;
+  cursor: pointer;
+  padding: 10px 15px;
+  font-size: 20px;
+  z-index: 10;
+}
+
+.swipe-button.prev {
+  left: 0;
+}
+
+.swipe-button.next {
+  right: 0;
+}
+
+.swipe-button:hover {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+/* Add to Cart Button */
+.add-to-cart-btn {
   margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #28a745;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: px;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #218838;
+  color: #ffffff;
+}
+
+/* Star Rating Styles */
+.star-rating {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .star {
-  font-size: 20px;
+  font-size: 24px;
+  color: #ffc107;
   cursor: pointer;
-  color: #555;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
 }
 
 .star.filled {
-  color: #ffab00;
+  color: #ffc107;
 }
 
-
-@media (max-width: 768px) {
-  .book-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Recommendations Section */
+.recommendations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 10px 50px 10px; /* Adjusted margin for better spacing */
+  padding: 20px;
+  background-color: #f9f9f9; /* Soft background color for contrast */
+  border-radius: 10px; /* Rounded corners for a softer look */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
-@media (max-width: 480px) {
-  .book-list {
-    grid-template-columns: 1fr;
-  }
+.recommendations h2 {
+  font-size: 28px;
+  color: #333333;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.recommendation-list {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 10px 0;
+  width: 100%;
+  scroll-behavior: smooth; /* Smooth scrolling when the user scrolls horizontally */
+}
+
+.recommendation-card {
+  flex: 0 0 200px; /* Increased card width */
+  text-align: center;
+  background-color: #ffffff; /* Card background */
+  padding: 15px;
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+}
+
+.recommendation-card img {
+  width: 100%;
+  height: 180px; /* Fixed height for images */
+  object-fit: cover; /* Ensures the image fits within the box */
+  border-radius: 8px;
+  margin-bottom: 15px; /* Space between image and text */
+}
+
+.recommendation-card p {
+  font-size: 16px; /* Larger font for better readability */
+  color: #333333;
+  margin-top: 10px;
+  font-weight: 500; /* Slightly bold text */
+  text-align: center;
+  line-height: 1.4; /* Spacing between lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Prevents text from wrapping to multiple lines */
+}
+
+/* Go to Cart Button */
+.go-to-cart-btn {
+  margin-top: 30px;
+  padding: 12px 25px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50px; /* Rounded button */
+  cursor: pointer;
+  font-size: 16px; /* Larger font size */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.go-to-cart-btn:hover {
+  background-color: #0069d9;
+  transform: translateY(-3px); /* Slight lift effect on hover */
+}
+
+.go-to-cart-btn:active {
+  background-color: #0056b3;
+  transform: translateY(0); /* No lift effect when button is clicked */
+}
+
+.author-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 0; /* Increased margin for better spacing */
+  padding: 20px; /* Added padding for breathing space */
+  background-color: #69656500; /* Added a light background color for contrast */
+  border-radius: 10px; /* Rounded corners for a softer look */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0); /* Subtle shadow for depth */
+}
+
+.author-section h2 {
+  font-size: 28px; /* Slightly larger font for emphasis */
+  color:  #333333; /* Darker color for readability */
+  margin-bottom: 20px; /* Increased spacing for better visual separation */
+  font-weight: bold; /* Made the heading stand out */
+  text-transform: uppercase; /* Uppercase text for a more stylized appearance */
+}
+
+/* Author List */
+.author-list {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px; /* Increased gap for better spacing between cards */
+  scroll-behavior: smooth;
+  padding: 15px 10px; /* More balanced padding */
+}
+
+.author-list::-webkit-scrollbar {
+  height: 8px; /* Styling scrollbar height */
+}
+
+.author-list::-webkit-scrollbar-thumb {
+  background-color: #ccc; /* Subtle scrollbar color */
+  border-radius: 10px;
+}
+
+.author-list::-webkit-scrollbar-thumb:hover {
+  background-color: #88888800; /* Slightly darker scrollbar on hover */
+}
+
+/* Author Card */
+.author-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px;
+  flex-shrink: 0;
+  width: 160px; /* Slightly larger for balance */
+  background-color: #f0f0f0; /* White background for cards */
+  padding: 15px;
+  border-radius: 10px; /* Rounded corners for the cards */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0); /* Subtle shadow for depth */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.author-card:hover {
+  transform: translateY(-5px); /* Slight hover lift */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* More pronounced shadow on hover */
+}
+
+/* Author Image Container */
+.author-card .author-image-container {
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 15px; /* Adjusted margin for better layout */
+  border: 3px solid #007bff00; /* Added a border around the image for focus */
+}
+
+/* Circular Author Image */
+.author-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%; /* Circular image */
+}
+
+/* Author Name */
+.author-card p {
+  text-align: center;
+  font-size: 16px; /* Slightly larger font */
+  color: #333333;
+  margin-top: 10px; /* Increased spacing for better alignment */
+  font-weight: 500; /* Semi-bold font for readability */
 }
