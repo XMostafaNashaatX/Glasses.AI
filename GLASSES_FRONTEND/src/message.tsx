@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './auth-styles.css';
 import googleIcon from './assets/google-icon-logo-svgrepo-com.svg'; // Import Google SVG
 import facebookIcon from './assets/facebook-svgrepo-com.svg'; // Import Facebook SVG
 
 const AuthForm: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/users/csrf/', {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        setCsrfToken(data.csrf_token);
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   const handleSignUpClick = () => {
     setIsSignUp(true);
@@ -23,12 +42,14 @@ const AuthForm: React.FC = () => {
 
     // Send the login request to the backend
     try {
-      const response = await fetch('https://your-backend-url.com/api/login', {
+      const response = await fetch('https://127.0.0.1:8000/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken || '',
         },
-        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+        body: JSON.stringify({ username, password }),
       });
 
       if (response.ok) {
@@ -51,25 +72,25 @@ const AuthForm: React.FC = () => {
 
     // Send the sign-up request to the backend
     try {
-      const response = await fetch('https://your-backend-url.com/api/signup', {
+      const response = await fetch('http://127.0.0.1:8000/users/registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken || '',
         },
-        body: JSON.stringify({ name, email, password }),
+        credentials: 'include',
+        body: JSON.stringify({ username, email, password }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
-        alert('Sign Up successful');
+        alert('Sign-up successful! You can now log in.');
       } else {
-        alert('Sign Up failed');
+        const errorData = await response.json();
+        alert(errorData.error || 'Sign-up failed');
       }
     } catch (error) {
       console.error('Error during sign-up:', error);
-      alert('An error occurred');
+      alert('An error occurred during sign-up');
     }
   };
 
@@ -133,7 +154,7 @@ const AuthForm: React.FC = () => {
             </a>
           </div>
           <span>or use your account</span>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
           <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <a href="#">Forgot your password?</a>
           <button type="submit">Sign In</button>
