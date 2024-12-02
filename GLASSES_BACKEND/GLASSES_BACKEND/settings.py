@@ -152,7 +152,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "glasses_db",
         "USER": "root",
-        "PASSWORD": "1234",
+        "PASSWORD": "abdo1234",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
@@ -215,6 +215,10 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
 
 
 PAYPAL_CLIENT_ID = (

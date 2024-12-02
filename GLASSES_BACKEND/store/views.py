@@ -10,8 +10,11 @@ from register.models import *
 from register.views import *
 from users.utils import check_users_role
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class BookSearch(APIView):
 
     def post(self, request):
@@ -22,14 +25,16 @@ class BookSearch(APIView):
             return role_check
 
         title_query = request.data.get("title", "").strip()
-        author_query = request.data.get("author" , "").strip()
+        author_query = request.data.get("author", "").strip()
 
         if not title_query and not author_query:
             return Response(
-                {"error": "At least one of 'title' or 'author' is required in the request body"},
+                {
+                    "error": "At least one of 'title' or 'author' is required in the request body"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         filters = Q()
         if title_query:
             filters |= Q(title__icontains=title_query)
@@ -101,7 +106,7 @@ class Add_Order(APIView):
 
         for book, quantity in order_items:
 
-            OrderItem.objects.create(order=order, item=book, quantity=quantity)  
+            OrderItem.objects.create(order=order, item=book, quantity=quantity)
 
         serializer = OrderSerializer(order)
         return Response(
@@ -220,4 +225,3 @@ class Update_order(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-
