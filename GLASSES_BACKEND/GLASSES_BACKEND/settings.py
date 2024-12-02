@@ -82,7 +82,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
-CORS_ORIGIN_ALLOW_ALL = True  
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
 
@@ -156,7 +156,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "glasses_db",
         "USER": "root",
-        "PASSWORD": "1234",
+        "PASSWORD": "abdo1234",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
@@ -232,3 +232,8 @@ PAYPAL_CLIENT_SECRET = (
     "EFm_DYKkVf__hJv_ef-lpVQsJXrctt0mNv9aJbqKDQrTsMll76bdaxjZw6X363XOw5QYH-21blHWNr8O"
 )
 PAYPAL_MODE = "sandbox"
+
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # or 'cache', 'cached_db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = True

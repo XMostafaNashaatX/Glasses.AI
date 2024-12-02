@@ -14,7 +14,7 @@ class Profile(models.Model):
         null=True,
     )
 
+    profile_image = models.CharField(max_length=255, blank=True)
 
     def _str_(self):
         return self.user.username
-

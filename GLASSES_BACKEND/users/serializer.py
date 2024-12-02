@@ -7,12 +7,21 @@ from django.contrib.auth.password_validation import validate_password
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["first_name", "last_name", "phone_number", "gender"]
+        fields = [
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+            "gender",
+            "profile_image",
+        ]
         extra_kwargs = {
             "first_name": {"required": False},
+            "middle_name": {"required": False},
             "last_name": {"required": False},
             "phone_number": {"required": False},
             "gender": {"required": False},
+            "profile_image": {"required": False},
         }
 
 
@@ -57,5 +66,3 @@ class UserSignupSerializer(serializers.Serializer):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already in use")
         return value
-
-
