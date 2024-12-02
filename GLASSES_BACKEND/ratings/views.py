@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Rating, Book
-
+from users.utils import check_users_role
 
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
@@ -57,39 +57,38 @@ def rate_book(request):
 
     if role_check:
         return role_check
-    # Ensure that the user is logged in
+
     if not request.user.is_authenticated:
         return Response(
             {"error": "You must be logged in to rate a book."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # Get the book_id, score, and review from the request data
+
     book_id = request.data.get("book_id")
     score = request.data.get("score")
     review = request.data.get("review")
 
-    # Check if all required fields are provided
+
     if not book_id or not score or not review:
         return Response(
             {"error": "book_id, score, and review are required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Try to retrieve the book from the database using the book_id
     try:
         book = Book.objects.get(id=book_id)
     except Book.DoesNotExist:
         return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Check if the user has already rated this book
+
     if Rating.objects.filter(book=book, user=request.user).exists():
         return Response(
             {"error": "You have already rated this book."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Prepare the data for the serializer
+
     data = {
         "book": book.id,
         "user": request.user.id,
@@ -97,10 +96,10 @@ def rate_book(request):
         "review": review,
     }
 
-    # Serialize the data and create the rating
+
     serializer = RatingSerializer(data=data)
     if serializer.is_valid():
-        # Save the new rating
+
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
@@ -117,20 +116,18 @@ def update_rating(request, book_id):
 
     if role_check:
         return role_check
-    # Ensure the user is authenticated
+    
     if not request.user.is_authenticated:
         return Response(
             {"error": "You must be logged in to update your rating."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # Try to get the book by its ID
     try:
         book = Book.objects.get(id=book_id)
     except Book.DoesNotExist:
         return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Try to find the rating made by the current user for the specific book
     try:
         rating = Rating.objects.get(book=book, user=request.user)
     except Rating.DoesNotExist:
@@ -139,10 +136,10 @@ def update_rating(request, book_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Ensure the incoming data is valid and contains the expected fields
+   
     serializer = RatingSerializer(
         rating, data=request.data, partial=True
-    )  # partial=True allows partial update
+    )  
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -152,29 +149,24 @@ def update_rating(request, book_id):
 
 @api_view(["DELETE"])
 def delete_rating(request, book_id):
-    """
-    Delete a rating for a specific book by the current user.
-    Only the user who rated the book can delete their own rating.
-    """
+
 
     role_check = check_users_role(request, role="User")
 
     if role_check:
         return role_check
-    # Check if the user is authenticated
+    
     if not request.user.is_authenticated:
         return Response(
             {"error": "You must be logged in to delete a rating."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # Try to get the book by its id
     try:
         book = Book.objects.get(id=book_id)
     except Book.DoesNotExist:
         return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Try to find the rating made by the current user for the specified book
     try:
         rating = Rating.objects.get(book=book, user=request.user)
     except Rating.DoesNotExist:
@@ -183,10 +175,8 @@ def delete_rating(request, book_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Delete the rating
     rating.delete()
 
-    # Return success response
     return Response(
         {"message": "Rating deleted successfully."}, status=status.HTTP_204_NO_CONTENT
     )

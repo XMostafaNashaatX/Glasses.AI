@@ -9,11 +9,11 @@ class BookSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    item = BookSerializer()  # Change book to item to match the model field
+    item = BookSerializer()
 
     class Meta:
         model = OrderItem
-        fields = ['item', 'quantity']  # Make sure this matches the model fields
+        fields = ['item', 'quantity']
 
 
 class OrderSerializer(serializers.ModelSerializer):

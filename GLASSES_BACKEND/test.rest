@@ -25,6 +25,15 @@ X-CSRFToken: Bearer <your_token_here>
     "title": "Clara Callan"
 }
 
+{
+  "title": "a"
+}
+
+{
+  "author": "Richard Bruce Wright"
+}
+
+
 
 POST http://127.0.0.1:8000/stores/Add/order/
 Content-Type: application/json

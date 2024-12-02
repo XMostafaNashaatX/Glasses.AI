@@ -9,6 +9,7 @@ from register.serializers import *
 from register.models import *
 from register.views import *
 from users.utils import check_users_role
+from django.db.models import Q
 
 
 class BookSearch(APIView):
@@ -21,22 +22,29 @@ class BookSearch(APIView):
             return role_check
 
         title_query = request.data.get("title", "").strip()
+        author_query = request.data.get("author" , "").strip()
 
-        if not title_query:
+        if not title_query and not author_query:
             return Response(
-                {"error": "Title is required in the request body"},
+                {"error": "At least one of 'title' or 'author' is required in the request body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        filters = Q()
+        if title_query:
+            filters |= Q(title__icontains=title_query)
+        if author_query:
+            filters |= Q(author__icontains=author_query)
 
-        book_titles = Book.objects.filter(title__icontains=title_query)
+        books = Book.objects.filter(filters)
 
-        if not book_titles.exists():
+        if not books.exists():
             return Response(
                 {"message": "No books found matching the title"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = BookSerializer(book_titles, many=True)
+        serializer = BookSerializer(books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
