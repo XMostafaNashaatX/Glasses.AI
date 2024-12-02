@@ -14,6 +14,5 @@ class Profile(models.Model):
         null=True,
     )
 
-    def __str__(self):
+    def _str_(self):
         return self.user.username
-

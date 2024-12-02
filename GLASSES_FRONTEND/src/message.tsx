@@ -42,7 +42,7 @@ const AuthForm: React.FC = () => {
 
     // Send the login request to the backend
     try {
-      const response = await fetch('https://127.0.0.1:8000/users/login', {
+      const response = await fetch('http://127.0.0.1:8000/users/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,15 +54,16 @@ const AuthForm: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        const token = data.token; // The backend should return the token
-        localStorage.setItem('authToken', token); // Store the token in localStorage
         alert('Login successful');
+        console.log('CSRF Token:', data.csrf_token);
+        navigate('/home');
       } else {
-        alert('Login failed');
+        const errorData = await response.json();
+        alert(errorData.error || 'Login failed');
       }
     } catch (error) {
       console.error('Error during login:', error);
-      alert('An error occurred');
+      alert('An error occurred during login');
     }
   };
 

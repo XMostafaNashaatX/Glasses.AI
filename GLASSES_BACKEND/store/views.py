@@ -10,8 +10,10 @@ from register.models import *
 from register.views import *
 from users.utils import check_users_role
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class BookSearch(APIView):
 
     def post(self, request):

@@ -1,6 +1,8 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import "./Home.css";
+
 
 const books = [
     { title: "The Great Gatsby", author: "F. Scott Fitzgerald", image: "http://bookcoverarchive.com/wp-content/uploads/2016/03/A1Pim60eMZL.jpg", rating: 4 },
@@ -17,17 +19,66 @@ const authors = [...new Set(books.map(book => book.author))];
 
 const Home: React.FC = () => {
     const navigate = useNavigate();
+    const [csrfToken, setCsrfToken] = useState<string | null>(null);
     const [searchInput, setSearchInput] = useState("");
     const [sortOrder, setSortOrder] = useState("alphabetical");
+    const [books, setBooks] = useState<any[]>([]); 
     const [ratings, setRatings] = useState<Record<string, number>>({});
     const [currentIndex, setCurrentIndex] = useState(0);
     const [cart, setCart] = useState<string[]>([]);
 
-    const filteredBooks = books.filter((book) =>
-        book.title.toLowerCase().includes(searchInput.toLowerCase())
-    );
+    useEffect(() => {
+        const fetchCsrfToken = async () => {
+          try {
+            const response = await fetch("http://127.0.0.1:8000/users/csrf/", {
+              credentials: "include",
+            });
+            const data = await response.json();
+            setCsrfToken(data.csrf_token);
+          } catch (error) {
+            console.error("Failed to fetch CSRF token:", error);
+          }
+        };
+        fetchCsrfToken();
+    }, []);
+    
 
-    const sortedBooks = filteredBooks.sort((a, b) => {
+      const fetchBooks = async (query: string) => {
+        if (!csrfToken) {
+            console.error("CSRF Token not available");
+            return;
+        }
+    
+        try {
+            const response = await axios.post(
+                "http://127.0.0.1:8000/stores/search/",
+                { title: query }, 
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    withCredentials: true,
+                }
+            );
+            setBooks(response.data);
+            console.log("Books fetched successfully:", response.data);
+        } catch (error: any) {
+            console.error("Error fetching books:", error.response?.data || error.message);
+        }
+    };
+    
+      const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const query = e.target.value;
+        setSearchInput(query);
+        if (query.trim()) {
+          fetchBooks(query);
+        } else {
+          setBooks([]); 
+        }
+    };
+
+    const sortedBooks = books.sort((a: any, b: any) => {
         if (sortOrder === "alphabetical") {
             return a.title.localeCompare(b.title);
         } else if (sortOrder === "rating") {
@@ -69,11 +120,11 @@ const Home: React.FC = () => {
                     <div className="search-bar">
                         <input
                             type="text"
-                            placeholder="Search books, authors, genres..."
+                            placeholder="Search"
                             value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
+                            onChange={handleSearchChange}
                         />
-                        <button>Search</button>
+                        <button onClick={() => fetchBooks(searchInput)}>Search</button>
                     </div>
                     <div className="nav-links">
                         <a href="#">Home</a>
@@ -119,46 +170,45 @@ const Home: React.FC = () => {
             </div>
 
             <div className="featured">
-                <h2>Featured Today</h2>
-                <div className="featured-books-container">
-                    <div
-                        className="featured-books"
-                        style={{
-                            transform: `translateX(-${Math.min(currentIndex, books.length - 1) * 170}px)`,
-                            transition: currentIndex < books.length - 1 ? undefined : 'none',
-                        }}
-                        onAnimationEnd={() => {
-                            if (currentIndex >= books.length - 1) {
-                                setCurrentIndex(0);
-                            }
-                        }}
-                    >
-                        {sortedBooks.map((book, index) => (
-                            <div className="book-card" key={index}>
-                                <img src={book.image} alt={book.title} />
-                                <p>{book.title}</p>
-                                <p><em>by {book.author}</em></p>
-                                <div className="star-rating">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <span
-                                            key={star}
-                                            className={`star ${ratings[book.title] >= star ? "filled" : ""}`}
-                                            onClick={() => handleRatingChange(book.title, star)}
-                                        >
-                                            ★
-                                        </span>
-                                    ))}
-                                </div>
-                                <button className="add-to-cart-btn" onClick={() => handleAddToCart(book.title)}>
-                                    Add to Cart
-                                </button>
-                            </div>
-                        ))}
+    <h2>Featured Today</h2>
+    {books.length === 0 ? (
+        <p>No books found. Try a different search query.</p>
+    ) : (
+        <div className="featured-books-container">
+            <div
+                className="featured-books"
+                style={{
+                    transform: `translateX(-${Math.min(currentIndex, books.length - 1) * 170}px)`,
+                    transition: currentIndex < books.length - 1 ? undefined : "none",
+                }}
+            >
+                {sortedBooks.map((book, index) => (
+                    <div className="book-card" key={index}>
+                        <img src={book.image_url_l || "https://via.placeholder.com/150"} alt={book.title} />
+                        <p>{book.title}</p>
+                        <p><em>by {book.author}</em></p>
+                        <div className="star-rating">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <span
+                                    key={star}
+                                    className={`star ${ratings[book.title] >= star ? "filled" : ""}`}
+                                    onClick={() => handleRatingChange(book.title, star)}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <button className="add-to-cart-btn" onClick={() => handleAddToCart(book.title)}>
+                            Add to Cart
+                        </button>
                     </div>
-                    <button className="swipe-button prev" onClick={swipePrev}>‹</button>
-                    <button className="swipe-button next" onClick={swipeNext}>›</button>
-                </div>
+                ))}
             </div>
+            <button className="swipe-button prev" onClick={swipePrev}>‹</button>
+            <button className="swipe-button next" onClick={swipeNext}>›</button>
+        </div>
+    )}
+</div>
 
             <div className="author-section">
                 <h2>Authors Featured Today</h2>
