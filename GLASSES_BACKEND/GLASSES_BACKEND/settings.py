@@ -220,6 +220,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
+
 
 PAYPAL_CLIENT_ID = (
     "ARY_XSs5XPk3oAvuYGyfuxLGu9ovW4rvjFRYGd-KAsjq6oXr2Mjh4-8R6Nf_Hubf5zO_tTkFOQm-yqLg"

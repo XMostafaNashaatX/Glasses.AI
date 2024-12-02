@@ -57,3 +57,5 @@ class UserSignupSerializer(serializers.Serializer):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already in use")
         return value
+
+

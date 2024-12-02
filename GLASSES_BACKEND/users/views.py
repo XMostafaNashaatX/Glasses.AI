@@ -102,3 +102,4 @@ def signup(request):
         print(serializer.errors)
         # If the serializer is not valid, return the errors
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
