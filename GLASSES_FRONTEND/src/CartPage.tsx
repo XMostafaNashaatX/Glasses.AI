@@ -14,6 +14,9 @@ const CartPage: React.FC = () => {
     { id: 1, name: 'Glasses Frame', price: 50, quantity: 1 },
     { id: 2, name: 'Blue Light Filter', price: 30, quantity: 2 },
   ]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState<boolean>(false);
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) return; // Prevent removing items through quantity
@@ -32,9 +35,46 @@ const CartPage: React.FC = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  const handleCheckout = () => {
-    // Redirect to the OrderPage or handle checkout logic here
-    alert('Proceeding to checkout...');
+  const handlePlaceOrder = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Place order logic - sending order details to the backend
+      const response = await fetch("http://127.0.0.1:8000/stores/Add/order/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems,  // Include all cart items in the order
+        }),
+        credentials: "include",  // Send cookies with the request
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setOrderSuccess(true);
+        setCartItems([]); // Clear the cart after successful order
+        alert('Order placed successfully!');
+      } else {
+        setError(data.error || 'Failed to place the order.');
+      }
+    } catch (err) {
+      console.error('Error placing order:', err);
+      setError('An error occurred while placing the order.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = () => {
+    setCartItems([]); // Empty the cart when canceling
+    alert('Order has been canceled.');
+  };
+
+  const handleUpdateOrder = () => {
+    // Update order logic (e.g., send updates to backend)
+    console.log('Order updated with new details.');
   };
 
   return (
@@ -82,9 +122,26 @@ const CartPage: React.FC = () => {
         {/* Cart Summary */}
         <div className="cart-summary">
           <p className="total-price-text">Total Price: ${calculateTotalPrice()}</p> {/* Class for Total Price */}
-          <Link to="/order">
-            <button className="checkout-button">Proceed to Checkout</button>
-          </Link>
+
+          {/* Order Buttons */}
+          {orderSuccess ? (
+            <button className="order-success-button" disabled>
+              Order Successfully Placed
+            </button>
+          ) : (
+            <>
+              <button
+                className="checkout-button"
+                onClick={handlePlaceOrder}
+                disabled={loading}
+              >
+                {loading ? 'Placing Order...' : 'Place Order'}
+              </button>
+              <button className="cancel-button" onClick={handleCancelOrder}>
+                Cancel Order
+              </button>
+            </>
+          )}
         </div>
       </section>
 

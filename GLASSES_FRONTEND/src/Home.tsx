@@ -23,6 +23,9 @@ const Home: React.FC = () => {
     const [searchInput, setSearchInput] = useState("");
     const [sortOrder, setSortOrder] = useState("alphabetical");
     const [books, setBooks] = useState<any[]>([]); 
+    const [bookId, setBookId] = useState<string>("");
+    const [quantity, setQuantity] = useState<number>(1);
+    const [loading, setLoading] = useState(false);
     const [ratings, setRatings] = useState<Record<string, number>>({});
     const [currentIndex, setCurrentIndex] = useState(0);
     const [cart, setCart] = useState<string[]>([]);
@@ -42,6 +45,20 @@ const Home: React.FC = () => {
         fetchCsrfToken();
     }, []);
     
+    const fetchAllBooks = async () => {
+        try {
+          const response = await axios.get("http://127.0.0.1:8000/stores/books/all/", {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          });
+          setBooks(response.data);
+          console.log("All Books:", response.data);
+        } catch (error: any) {
+          console.error("Error fetching all books:", error.response?.data || error.message);
+        }
+      };
 
       const fetchBooks = async (query: string) => {
         if (!csrfToken) {
@@ -67,14 +84,14 @@ const Home: React.FC = () => {
             console.error("Error fetching books:", error.response?.data || error.message);
         }
     };
-    
+
       const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
         setSearchInput(query);
         if (query.trim()) {
           fetchBooks(query);
         } else {
-          setBooks([]); 
+            fetchAllBooks(); 
         }
     };
 
@@ -91,10 +108,10 @@ const Home: React.FC = () => {
         setRatings((prevRatings) => ({ ...prevRatings, [bookTitle]: newRating }));
     };
 
-    const handleAddToCart = (bookTitle: string) => {
-        setCart((prevCart) => [...prevCart, bookTitle]);
+    const handleAddToCart = (bookId: string) => {
+        setCart((prevCart) => [...prevCart, bookId]);
     };
-
+    
     const swipeNext = () => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % books.length);
     };
@@ -104,9 +121,9 @@ const Home: React.FC = () => {
     };
 
     useEffect(() => {
-        const interval = setInterval(() => swipeNext(), 5000);
-        return () => clearInterval(interval);
+        fetchAllBooks();
     }, []);
+    
 
     const handleGoToCart = () => {
         navigate("/cart");
@@ -198,7 +215,7 @@ const Home: React.FC = () => {
                                 </span>
                             ))}
                         </div>
-                        <button className="add-to-cart-btn" onClick={() => handleAddToCart(book.title)}>
+                        <button className="add-to-cart-btn" onClick={() => handleAddToCart(book.id)}>
                             Add to Cart
                         </button>
                     </div>
@@ -213,29 +230,31 @@ const Home: React.FC = () => {
             <div className="author-section">
                 <h2>Authors Featured Today</h2>
                 <div className="author-list" style={{ display: "flex", overflowX: "auto", gap: "15px", scrollBehavior: "smooth" }}>
-                    {authors.map((author, index) => (
+                    {books.map((book, index) => (
                         <div className="author-card" key={index}>
-                            <img src={`https://media.glamour.com/photos/5ee21c890669ebb649d951d6/6:7/w_2560,c_limit/GettyImages-1061229550.jpg`} alt={author} />
-                            <p>{author}</p>
-                        </div>
+                        <img
+                            src={`https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/J.K._Rowling_2010.jpg/800px-J.K._Rowling_2010.jpg`} // Example for author J.K. Rowling
+                            alt={book.author}
+                        />
+                        <p>{book.author}</p>
+                    </div>
                     ))}
                 </div>
             </div>
 
-            {/* Added Recommendations Section */}
-            <div className="recommendations">
+          <div className="recommendations">
                 <h2>Recommended for You</h2>
                 <div className="recommendation-list">
                     {books.slice(0, 3).map((book, index) => (
                         <div className="recommendation-card" key={index}>
-                            <img src={book.image} alt={book.title} />
-                            <p>{book.title}</p>
-                            <p><em>by {book.author}</em></p>
-                        </div>
+                        <img src={book.image_url_l || "https://via.placeholder.com/150"} alt={book.title} />
+                        <p>{book.title}</p>
+                    </div>
                     ))}
                 </div>
             </div>
-        </div>
+        </div>  
+            
     );
 };
 

@@ -12,6 +12,14 @@ from users.utils import check_users_role
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.permissions import IsAuthenticated
+
+
+class AllBooks(APIView):
+    def get(self, request):
+        books = Book.objects.all()
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -202,7 +210,7 @@ class Update_order(APIView):
                 return Response(
                     {"error": f"No item with Book ID '{book_id}' found in this order"},
                     status=status.HTTP_404_NOT_FOUND,
-                )
+            )
 
             order_item.quantity = new_quantity
             order_item.save()
