@@ -7,6 +7,7 @@ import { BookDetailsPage } from './pages/BookDetailsPage';
 import { CartPage } from './pages/CartPage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { LoginPage } from './pages/LoginPage';
 import { CartProvider } from './context/CartContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/login" element={<LoginPage />} />
             </Routes>
           </div>
         </Router>

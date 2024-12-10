@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import type { Book } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -13,15 +14,58 @@ export function BookCard({ book }: BookCardProps) {
   const { dispatch: cartDispatch } = useCart();
   const { state: favoritesState, dispatch: favoritesDispatch } = useFavorites();
 
+  // State to hold the average rating
+  const [averageRating, setAverageRating] = useState<number | string>('N/A');
+  const [error, setError] = useState<string | null>(null);
+
+  // Get the authentication token from localStorage
+  const authToken = localStorage.getItem('authToken');
+
+  // Fetch the average rating on component mount
+  useEffect(() => {
+    const fetchAverageRating = async () => {
+      try {
+        const csrfToken = localStorage.getItem("csrfToken"); // Fetch the CSRF token stored after login
+
+        if (!csrfToken) {
+          setAverageRating("Login to view ratings");
+          return;
+        }
+
+        const response = await axios.get(
+          `http://localhost:8000/ratings/average_rating/${book.id}/`,
+          {
+            headers: {
+              "X-CSRFToken": csrfToken, // Include CSRF token
+            },
+            withCredentials: true, // Ensure cookies are sent
+          }
+        );
+
+        if (response.data.average_rating !== undefined) {
+          setAverageRating(response.data.average_rating.toFixed(1));
+        }
+      } catch (error: any) {
+        if (error.response?.status === 401) {
+          setAverageRating("You must be logged in to view ratings.");
+        } else {
+          setAverageRating("Unable to fetch ratings. Please try again later.");
+        }
+      }
+    };
+
+    fetchAverageRating();
+  }, [book.id]);
+
   const isFavorite = favoritesState.items.some(item => item.id === book.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation when clicking the cart button
+    e.preventDefault();
     cartDispatch({ type: 'ADD_TO_CART', payload: book });
   };
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation when clicking the favorite button
+    e.preventDefault();
     if (isFavorite) {
       favoritesDispatch({ type: 'REMOVE_FROM_FAVORITES', payload: book.id });
     } else {
@@ -32,9 +76,8 @@ export function BookCard({ book }: BookCardProps) {
   return (
     <div className="group relative bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-2">
       <Link to={`/books/${book.id}`}>
-        {/* Use image_url_s or fallback */}
         <img
-          src={book.image_url_l || 'https://via.placeholder.com/150'} // Fallback image
+          src={book.image_url_l || 'https://via.placeholder.com/150'}
           alt={book.title}
           className="w-full h-64 object-cover"
         />
@@ -49,9 +92,13 @@ export function BookCard({ book }: BookCardProps) {
           </div>
           <div className="flex items-center">
             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="ml-1 text-sm">{book.rating}</span>
+            <span className="ml-1 text-sm">
+              {averageRating}
+            </span>
           </div>
         </div>
+
+        {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
 
         <div className="mt-4 flex justify-between items-center">
           <span className="text-[#5A1A32] font-bold">${book.price}</span>
