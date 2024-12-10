@@ -13,13 +13,36 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated
+from .models import Book
+from django.views import View
+from django.http import JsonResponse
 
 
-class AllBooks(APIView):
+class AllBooks(View):
     def get(self, request):
+        # Fetch all books from the database
         books = Book.objects.all()
-        serializer = BookSerializer(books, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Create a list of dictionaries with the required fields
+        books_data = [
+            {
+                "id": book.id,
+                "title": book.title,
+                "author": book.author,
+                "year_publication": book.year_publication,
+                "publisher": book.publisher,
+                "image_url_s": book.image_url_s,
+                "image_url_m": book.image_url_m,
+                "image_url_l": book.image_url_l,
+                "price": str(
+                    book.price
+                ),  # Convert price to string for JSON compatibility
+            }
+            for book in books
+        ]
+
+        # Return the books data as JSON
+        return JsonResponse(books_data, safe=False)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -210,7 +233,7 @@ class Update_order(APIView):
                 return Response(
                     {"error": f"No item with Book ID '{book_id}' found in this order"},
                     status=status.HTTP_404_NOT_FOUND,
-            )
+                )
 
             order_item.quantity = new_quantity
             order_item.save()
