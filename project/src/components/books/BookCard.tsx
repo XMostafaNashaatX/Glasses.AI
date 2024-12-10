@@ -32,14 +32,15 @@ export function BookCard({ book }: BookCardProps) {
   return (
     <div className="group relative bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-2">
       <Link to={`/books/${book.id}`}>
+        {/* Use image_url_s or fallback */}
         <img
-          src={book.cover}
+          src={book.image_url_l || 'https://via.placeholder.com/150'} // Fallback image
           alt={book.title}
           className="w-full h-64 object-cover"
         />
         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300" />
       </Link>
-      
+
       <div className="p-4">
         <div className="flex justify-between items-start">
           <div>
@@ -51,19 +52,19 @@ export function BookCard({ book }: BookCardProps) {
             <span className="ml-1 text-sm">{book.rating}</span>
           </div>
         </div>
-        
+
         <div className="mt-4 flex justify-between items-center">
           <span className="text-[#5A1A32] font-bold">${book.price}</span>
           <div className="flex space-x-2">
-            <button 
+            <button
               onClick={handleToggleFavorite}
               className="p-2 rounded-full hover:bg-gray-100"
             >
-              <Heart 
-                className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-current' : 'text-[#5A1A32]'}`} 
+              <Heart
+                className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-current' : 'text-[#5A1A32]'}`}
               />
             </button>
-            <button 
+            <button
               onClick={handleAddToCart}
               className="p-2 rounded-full hover:bg-gray-100"
             >
