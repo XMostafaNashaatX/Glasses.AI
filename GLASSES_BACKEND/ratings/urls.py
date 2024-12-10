@@ -13,4 +13,5 @@ urlpatterns = [
     path("create/", views.rate_book, name="rate_book"),
     path("update/<int:book_id>/", views.update_rating, name="update_rating"),
     path("delete/<int:book_id>/", views.delete_rating, name="delete_rating"),
+    path("average_rating/<int:book_id>/", views.average_rating, name="average_rating"),
 ]
