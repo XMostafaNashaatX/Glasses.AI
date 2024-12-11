@@ -1,20 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
-import type { Book } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
+import axios from 'axios';
+import type { Book } from '../../types';
 
 interface BookDetailsProps {
   book: Book;
 }
 
 export function BookDetails({ book }: BookDetailsProps) {
-  const [rating, setRating] = React.useState(0);
-  const [review, setReview] = React.useState('');
+  const [score, setRating] = useState(0); // For new rating input
+  const [review, setReview] = useState('');
+  const [userRatingForBook, setUserRatingForBook] = useState<number | null>(null); // User's rating for the book
   const { dispatch: cartDispatch } = useCart();
   const { state: favoritesState, dispatch: favoritesDispatch } = useFavorites();
 
   const isFavorite = favoritesState.items.some(item => item.id === book.id);
+  const authToken = localStorage.getItem('access'); // Get the JWT authentication token from localStorage
+
+  // Fetch the user's specific rating for the book
+  useEffect(() => {
+    if (authToken) {
+      fetch(`http://127.0.0.1:8000/ratings/book/${book.id}/`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setUserRatingForBook(data.user_rating || null); // Set user's rating if it exists
+        })
+        .catch(() => setUserRatingForBook(null)); // In case of error, set userRatingForBook as null
+    }
+  }, [book.id, authToken]);
 
   const handleAddToCart = () => {
     cartDispatch({ type: 'ADD_TO_CART', payload: book });
@@ -28,11 +47,67 @@ export function BookDetails({ book }: BookDetailsProps) {
     }
   };
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add review submission logic
-    setRating(0);
-    setReview('');
+
+    if (!authToken) {
+      alert("You must be logged in to submit a rating.");
+      return;
+    }
+
+    // Ensure the rating is selected before submitting
+    if (score === 0) {
+      alert("Please select a rating before submitting.");
+      return;
+    }
+
+    const url = userRatingForBook === null
+      ? `http://127.0.0.1:8000/ratings/create/${book.id}/`
+      : `http://127.0.0.1:8000/ratings/update/${book.id}/`;
+
+    const method = userRatingForBook === null ? 'POST' : 'PUT';
+
+    try {
+      const response = await axios({
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        data: { score, review },
+      });
+
+      // Update the user rating for the book
+      setUserRatingForBook(response.data.user_rating);
+
+      console.log(response.data)
+      // Reset the form after submission
+      setRating(0);
+      setReview('');
+    } catch (error) {
+      alert("Error submitting review. Please try again.");
+    }
+  };
+
+  const handleDeleteRating = async () => {
+    if (!authToken) {
+      alert("You must be logged in to delete a rating.");
+      return;
+    }
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/ratings/delete/${book.id}/`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      // Clear the user's rating
+      setUserRatingForBook(null);
+    } catch (error) {
+      alert("Error deleting review. Please try again.");
+    }
   };
 
   return (
@@ -40,7 +115,7 @@ export function BookDetails({ book }: BookDetailsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <img
-            src={book.cover}
+            src={book.image_url_l || book.image_url_m || book.image_url_s}
             alt={book.title}
             className="w-full rounded-lg shadow-lg"
           />
@@ -48,30 +123,31 @@ export function BookDetails({ book }: BookDetailsProps) {
         <div>
           <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
           <p className="text-xl text-gray-600 mb-4">{book.author}</p>
-          
+
           <div className="flex items-center mb-4">
             <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            <span className="ml-1 text-lg">{book.rating} / 5</span>
+            <span className="ml-1 text-lg">
+              {userRatingForBook !== null ? `Your Rating: ${userRatingForBook}` : 'No ratings yet'}
+            </span>
           </div>
-          
+
           <p className="text-gray-700 mb-6">{book.description}</p>
-          
+
           <div className="flex items-center space-x-4 mb-8">
             <span className="text-2xl font-bold text-[#5A1A32]">${book.price}</span>
-            <button 
+            <button
               onClick={handleAddToCart}
               className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg flex items-center space-x-2 hover:bg-[#5A1A32]/90"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Add to Cart</span>
             </button>
-            <button 
+            <button
               onClick={handleToggleFavorite}
-              className={`border border-[#5A1A32] p-2 rounded-lg ${
-                isFavorite 
-                  ? 'bg-[#5A1A32] text-white' 
-                  : 'text-[#5A1A32] hover:bg-[#5A1A32] hover:text-white'
-              }`}
+              className={`border border-[#5A1A32] p-2 rounded-lg ${isFavorite
+                ? 'bg-[#5A1A32] text-white'
+                : 'text-[#5A1A32] hover:bg-[#5A1A32] hover:text-white'
+                }`}
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
             </button>
@@ -90,7 +166,7 @@ export function BookDetails({ book }: BookDetailsProps) {
                       key={star}
                       type="button"
                       onClick={() => setRating(star)}
-                      className={`p-1 ${rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                      className={`p-1 ${score >= star ? 'text-yellow-400' : 'text-gray-300'}`}
                     >
                       <Star className="h-6 w-6 fill-current" />
                     </button>
@@ -115,6 +191,17 @@ export function BookDetails({ book }: BookDetailsProps) {
                 Submit Review
               </button>
             </form>
+
+            {userRatingForBook !== null && (
+              <div className="mt-4">
+                <button
+                  onClick={handleDeleteRating}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 ml-2"
+                >
+                  Delete Your Rating
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

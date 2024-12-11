@@ -16,7 +16,6 @@ export function BooksPage() {
     const fetchBooks = async () => {
       try {
         const response = await axios.get('http://localhost:8000/stores/books/all/');
-        console.log(response.data)
         setBooks(response.data);
       } catch (error) {
         setError('Failed to load books');

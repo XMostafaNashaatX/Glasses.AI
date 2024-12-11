@@ -1,53 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export function LoginPage() {
-  const [csrfToken, setCsrfToken] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  // Fetch CSRF Token from the backend
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/users/csrf/', {
-          withCredentials: true, // Include cookies
-        });
-        setCsrfToken(response.data.csrf_token);
-        localStorage.setItem('csrfToken', response.data.csrf_token); // Store token for later use
-      } catch (err) {
-        console.error('Error fetching CSRF token:', err);
-      }
-    };
-    fetchCsrfToken();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await axios.post(
-        'http://127.0.0.1:8000/users/login/',
+        "http://127.0.0.1:8000/users/api/token/",
         { username, password },
-        {
-          headers: {
-            'X-CSRFToken': csrfToken, // Include the CSRF token in the header
-          },
-          withCredentials: true, // Include cookies
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      // Store tokens and handle redirection after login
-      if (response.data.access) {
-        localStorage.setItem('authToken', response.data.access); // Store JWT token
-        if (response.data.redirect_to) {
-          window.location.href = response.data.redirect_to;
-        }
-      }
+      // Store the JWT token
+      const { access } = response.data;
+      localStorage.setItem("access", access);
+      console.log(localStorage.getItem("access"));
+
+      // Set default Authorization header for future requests
+      axios.defaults.headers.common["Authorization"] = `Bearer ${access}`;
+
+      // Redirect to the home page or a specific page
+      navigate("/books");
     } catch (err) {
-      setError('Invalid username or password');
-      console.error('Login error:', err);
+      setError("Invalid username or password");
+      console.error("Login error:", err);
     }
   };
 

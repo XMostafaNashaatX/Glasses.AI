@@ -54,7 +54,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'UPDATE_QUANTITY': {
       const item = state.items.find(item => item.book.id === action.payload.bookId);
       if (!item) return state;
-      
+
       const quantityDiff = action.payload.quantity - item.quantity;
       return {
         ...state,

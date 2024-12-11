@@ -1,25 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { BookDetails } from '../components/books/BookDetails';
 import type { Book } from '../types';
 
-// This would typically come from an API
-const SAMPLE_BOOK: Book = {
-  id: '1',
-  title: 'The Great Gatsby',
-  author: 'F. Scott Fitzgerald',
-  cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800',
-  price: 19.99,
-  rating: 4.8,
-  description: 'The Great Gatsby is a 1925 novel by American writer F. Scott Fitzgerald. Set in the Jazz Age on Long Island, the novel depicts narrator Nick Carraway\'s interactions with mysterious millionaire Jay Gatsby and Gatsby\'s obsession to reunite with his former lover, Daisy Buchanan.',
-  genre: ['Fiction', 'Classic'],
-  reviews: []
-};
-
 export function BookDetailsPage() {
-  const { id } = useParams();
-  // In a real app, we would fetch the book data based on the ID
-  const book = SAMPLE_BOOK;
+  const { id } = useParams(); // Get the book ID from the URL
+  const [book, setBook] = useState<Book | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch the book details from the API based on the book ID
+    const fetchBookDetails = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/stores/books/${id}/`);
+        if (!response.ok) {
+          throw new Error('Book not found');
+        }
+        const data: Book = await response.json();
+        setBook(data); // Set the fetched book data to the state
+      } catch (err) {
+        setError('Failed to load book details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchBookDetails();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   if (!book) {
     return <div>Book not found</div>;
