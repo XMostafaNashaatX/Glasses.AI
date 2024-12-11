@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
 from django.contrib.auth import password_validation
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class LoginView(APIView):
@@ -32,29 +33,17 @@ class LoginView(APIView):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request, user)
-            csrf_token = get_token(request)
+            # Generate JWT token
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
 
-            if user.is_staff:
-
-                return Response(
-                    {
-                        "message": "Login successful",
-                        "csrf_token": csrf_token,
-                        "redirect_to": "/admin_dashboard/",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-
-            else:
-                return Response(
-                    {
-                        "message": "Login successful",
-                        "csrf_token": csrf_token,
-                        "redirect_to": "/",
-                    },
-                    status=status.HTTP_200_OK,
-                )
+            return Response(
+                {
+                    "message": "Login successful",
+                    "access_token": access_token,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         else:
             return Response(

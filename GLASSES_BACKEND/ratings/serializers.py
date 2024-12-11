@@ -8,12 +8,11 @@ class RatingSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("id", "created_at", "updated_at")
         extra_kwargs = {
-            "book": {"write_only": True},  # Write-only, don't return in the response
-            "user": {"write_only": True},  # Write-only, don't return in the response
+            "book": {"write_only": True},
+            "user": {"write_only": True},
         }
 
     def create(self, validated_data):
-        # Ensure that the 'book' and 'user' fields are properly handled if not directly passed
         book = validated_data.get("book")
         user = validated_data.get("user")
         return Rating.objects.create(**validated_data)
@@ -23,3 +22,14 @@ class RatingSerializer(serializers.ModelSerializer):
         instance.review = validated_data.get("review", instance.review)
         instance.save()
         return instance
+
+
+class UserRatingSerializer(serializers.ModelSerializer):
+    user_rating = serializers.FloatField(
+        source="score", read_only=True
+    )  # Renaming score to user_rating
+    review = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = ["user_rating", "review"]

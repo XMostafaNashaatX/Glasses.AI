@@ -53,4 +53,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.item.title} (Total: {self.total_price():.2f}$)"
-

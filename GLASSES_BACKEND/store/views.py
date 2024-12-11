@@ -45,6 +45,28 @@ class AllBooks(View):
         return JsonResponse(books_data, safe=False)
 
 
+class BookDetail(View):
+    def get(self, request, book_id):
+        # Fetch the book by ID or return 404 if not found
+        book = get_object_or_404(Book, id=book_id)
+
+        # Create a dictionary with the book details
+        book_data = {
+            "id": book.id,
+            "title": book.title,
+            "author": book.author,
+            "year_publication": book.year_publication,
+            "publisher": book.publisher,
+            "image_url_s": book.image_url_s,
+            "image_url_m": book.image_url_m,
+            "image_url_l": book.image_url_l,
+            "price": str(book.price),
+        }
+
+        # Return the book details as JSON
+        return JsonResponse(book_data)
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class BookSearch(APIView):
 

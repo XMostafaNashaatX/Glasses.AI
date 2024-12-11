@@ -1,4 +1,5 @@
 from .models import Rating
+from .serializers import UserRatingSerializer
 from .serializers import RatingSerializer
 from rest_framework import viewsets, permissions
 from rest_framework import status
@@ -61,72 +62,63 @@ class RatingViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["POST"])
-def rate_book(request):
-
+@permission_classes([IsAuthenticated])
+def rate_book(request, book_id):
+    """
+    Create a rating for a book by the authenticated user.
+    """
     role_check = check_users_role(request, role="User")
-
     if role_check:
         return role_check
 
-    if not request.user.is_authenticated:
-        return Response(
-            {"error": "You must be logged in to rate a book."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
-
-    book_id = request.data.get("book_id")
+    # Ensure score and review are provided
     score = request.data.get("score")
     review = request.data.get("review")
-
-    if not book_id or not score or not review:
+    if not score or not review:
         return Response(
-            {"error": "book_id, score, and review are required."},
+            {"error": "Both 'score' and 'review' fields are required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # Fetch the book
     try:
         book = Book.objects.get(id=book_id)
     except Book.DoesNotExist:
         return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
 
+    # Check for existing rating
     if Rating.objects.filter(book=book, user=request.user).exists():
         return Response(
             {"error": "You have already rated this book."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # Create and save rating
     data = {
         "book": book.id,
         "user": request.user.id,
         "score": score,
         "review": review,
     }
-
     serializer = RatingSerializer(data=data)
     if serializer.is_valid():
-
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["PATCH"])
+@api_view(["PATCH", "PUT"])
+@permission_classes([IsAuthenticated])
 def update_rating(request, book_id):
     """
     Update an existing rating for a specific book by the current user.
     """
-
     role_check = check_users_role(request, role="User")
-
     if role_check:
         return role_check
 
-    if not request.user.is_authenticated:
-        return Response(
-            {"error": "You must be logged in to update your rating."},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+    # Debug: Print incoming request data
+    print(f"Request data: {request.data}")
 
     try:
         book = Book.objects.get(id=book_id)
@@ -141,12 +133,27 @@ def update_rating(request, book_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    serializer = RatingSerializer(rating, data=request.data, partial=True)
+    # Prepare data for serializer
+    data = request.data.copy()  # Ensure we're not modifying the original request data
+    data["book"] = book.id
+    data["user"] = request.user.id
+
+    partial = request.method == "PATCH"
+
+    # Debug: Print final data being sent to serializer
+    print(f"Data being sent to serializer: {data}")
+
+    # Serialize and update the rating
+    serializer = RatingSerializer(rating, data=data, partial=partial)
+
     if serializer.is_valid():
+        print(f"Serialized data is valid: {serializer.validated_data}")
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        # Debug: Print serializer errors
+        print(f"Serializer errors: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["DELETE"])
@@ -209,3 +216,27 @@ def average_rating(request, book_id):
         )
 
     return Response({"average_rating": avg_rating}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_rating_for_book(request, book_id):
+    """
+    Fetch the rating a specific user has given to a particular book.
+    """
+    try:
+        book = Book.objects.get(id=book_id)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        rating = Rating.objects.get(book=book, user=request.user)
+    except Rating.DoesNotExist:
+        return Response(
+            {"error": "You have not rated this book."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Use the refined serializer to return only the required data
+    serializer = UserRatingSerializer(rating)
+    return Response(serializer.data, status=status.HTTP_200_OK)

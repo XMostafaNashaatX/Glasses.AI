@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     "payments",
+    "cart",
     # "users",
 ]
 
@@ -64,19 +65,19 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
-REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
-    ],
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ],
-}
+# REST_FRAMEWORK = {
+#     "DEFAULT_PERMISSION_CLASSES": [
+#         "rest_framework.permissions.IsAuthenticated",
+#         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+#     ],
+#     "DEFAULT_AUTHENTICATION_CLASSES": [
+#         "rest_framework.authentication.BasicAuthentication",
+#         "rest_framework.authentication.SessionAuthentication",
+#         "rest_framework.authentication.TokenAuthentication",
+#         "rest_framework_simplejwt.authentication.JWTAuthentication",
+# "rest_framework_simplejwt.authentication.JWTAuthentication",
+# ],
+# }
 
 # REST_FRAMEWORK = {
 #     "DEFAULT_PERMISSION_CLASSES": [
@@ -87,6 +88,15 @@ REST_FRAMEWORK = {
 #     ],
 # }
 #
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -249,3 +259,15 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_SAVE_EVERY_REQUEST = True
 # LOGIN_URL = "users/login/"
 # LOGIN_REDIRECT_URL = "/"
+
+
+CSRF_COOKIE_SAMESITE = "None"  # Important for cross-site cookies
+CSRF_COOKIE_SECURE = (
+    True  # Use secure cookies (make sure your site is served over HTTPS)
+)
+
+# Ensure session cookies are sent with SameSite=None and Secure if using HTTPS
+CSRF_COOKIE_SAMESITE = "None"  # Ensure CSRF cookie is sent cross-site
+SESSION_COOKIE_SAMESITE = "None"  # Ensure session cookies are sent cross-site
+CSRF_COOKIE_SECURE = False  # Disable secure cookies for HTTP
+SESSION_COOKIE_SECURE = False  # Disable secure cookies for HTTP
