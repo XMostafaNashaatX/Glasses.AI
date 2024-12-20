@@ -39,11 +39,11 @@ export function BookDetails({ book }: BookDetailsProps) {
   const handleAddToCart = async () => {
     try {
       await axios.post(
-        'http://127.0.0.1:8000/cart/add/',
+        'http://127.0.0.1:8000/carts/add/',
         { book_id: book.id },
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-      cartDispatch({ type: 'ADD_TO_CART', payload: { book , quantity: 1 } });
+      // cartDispatch({ type: 'ADD_TO_CART', payload: { book, quantity: 1 } });
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
@@ -94,7 +94,7 @@ export function BookDetails({ book }: BookDetailsProps) {
       addToFavorites();
     }
   };
-  
+
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,11 +204,10 @@ export function BookDetails({ book }: BookDetailsProps) {
             </button>
             <button
               onClick={toggleFavorite}
-              className={`border p-2 rounded-lg ${
-                isFavorite
-                  ? 'bg-[#5A1A32] text-white'
-                  : 'bg-[#5A1A32] text-white hover:bg-[#5A1A32]/90'
-              }`}
+              className={`border p-2 rounded-lg ${isFavorite
+                ? 'bg-[#5A1A32] text-white'
+                : 'bg-[#5A1A32] text-white hover:bg-[#5A1A32]/90'
+                }`}
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
               <span>{isFavorite ? '' : ''}</span>

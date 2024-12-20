@@ -1,92 +1,148 @@
-import React, { createContext, useContext, useReducer } from 'react';
-import type { Book } from '../types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 interface CartItem {
-  book: Book;
+  id: number;
+  book: string;
+  book_id: number;
   quantity: number;
+  price: number;
 }
 
-interface CartState {
-  items: CartItem[];
-  total: number;
+interface CartContextType {
+  cartItems: CartItem[];
+  fetchCart: () => void;
+  addToCart: (bookId: number, quantity?: number) => void;
+  updateQuantity: (itemId: number, action: "+" | "-") => void;
+  removeFromCart: (itemId: number) => void;
+  clearCart: () => void;
+  calculateTotal: () => Promise<number | null>;
 }
 
-type CartAction =
-  | { type: 'ADD_TO_CART'; payload: Book }
-  | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { bookId: string; quantity: number } }
-  | { type: 'CLEAR_CART' };
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CartContext = createContext<{
-  state: CartState;
-  dispatch: React.Dispatch<CartAction>;
-} | null>(null);
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-const cartReducer = (state: CartState, action: CartAction): CartState => {
-  switch (action.type) {
-    case 'ADD_TO_CART': {
-      const existingItem = state.items.find(item => item.book.id === action.payload.id);
-      if (existingItem) {
-        return {
-          ...state,
-          items: state.items.map(item =>
-            item.book.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          ),
-          total: state.total + action.payload.price,
-        };
-      }
-      return {
-        ...state,
-        items: [...state.items, { book: action.payload, quantity: 1 }],
-        total: state.total + action.payload.price,
-      };
+  // Fetch cart items
+  const fetchCart = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/carts/cart/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+        },
+      });
+      setCartItems(response.data.items);
+    } catch (error) {
+      console.error('Failed to fetch cart:', error);
     }
-    case 'REMOVE_FROM_CART': {
-      const item = state.items.find(item => item.book.id === action.payload);
-      return {
-        ...state,
-        items: state.items.filter(item => item.book.id !== action.payload),
-        total: state.total - (item ? item.book.price * item.quantity : 0),
-      };
-    }
-    case 'UPDATE_QUANTITY': {
-      const item = state.items.find(item => item.book.id === action.payload.bookId);
-      if (!item) return state;
+  };
 
-      const quantityDiff = action.payload.quantity - item.quantity;
-      return {
-        ...state,
-        items: state.items.map(item =>
-          item.book.id === action.payload.bookId
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ),
-        total: state.total + (item.book.price * quantityDiff),
-      };
+  // Add item to cart
+  const addToCart = async (bookId: number, quantity: number = 1) => {
+    try {
+      await axios.post(
+        'http://127.0.0.1:8000/carts/add/',
+        { book_id: bookId, quantity },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+          },
+        }
+      );
+      fetchCart();
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
     }
-    case 'CLEAR_CART':
-      return { items: [], total: 0 };
-    default:
-      return state;
-  }
-};
+  };
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
+  // Update item quantity in cart
+  const updateQuantity = async (itemId: number, action: "+" | "-") => {
+    try {
+      await axios.patch(
+        `http://127.0.0.1:8000/carts/update/${itemId}/`,
+        { action },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+          },
+        }
+      );
+      fetchCart();
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    }
+  };
+
+  // Remove item from cart
+  const removeFromCart = async (itemId: number) => {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/carts/remove/${itemId}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+        },
+      });
+      fetchCart();
+    } catch (error) {
+      console.error('Failed to remove item from cart:', error);
+    }
+  };
+
+  // Clear all items in the cart
+  const clearCart = async () => {
+    try {
+      await axios.delete('http://127.0.0.1:8000/carts/clear/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+        },
+      });
+      fetchCart();
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+    }
+  };
+
+  // Calculate the total price of the cart
+  const calculateTotal = async (): Promise<number | null> => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/carts/total/', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`, // JWT token
+        },
+      });
+      return response.data.total;
+    } catch (error) {
+      console.error('Failed to calculate total:', error);
+      return null;
+    }
+  };
+
+  // Fetch cart on mount
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   return (
-    <CartContext.Provider value={{ state, dispatch }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        fetchCart,
+        addToCart,
+        updateQuantity,
+        removeFromCart,
+        clearCart,
+        calculateTotal,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
-}
+};
 
-export function useCart() {
+export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error('useCart must be used within a CartProvider');
   }
   return context;
-}
+};
