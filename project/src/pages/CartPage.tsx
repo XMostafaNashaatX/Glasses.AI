@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { CartItem } from '../types';
+
 
 export function CartPage() {
   const { state, dispatch } = useCart();
@@ -36,7 +38,7 @@ export function CartPage() {
               className="flex items-center gap-4 bg-white p-4 rounded-lg shadow-md mb-4"
             >
               <img
-                src={book.cover}
+                src={book.image_url_s}
                 alt={book.title}
                 className="w-24 h-32 object-cover rounded"
               />

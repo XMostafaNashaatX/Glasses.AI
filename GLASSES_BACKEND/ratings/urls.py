@@ -6,6 +6,8 @@ from .views import (
     update_rating,
     delete_rating,
     user_rating_for_book,
+    top_rated_books ,
+    top_rated_authors ,
 )
 from . import views
 
@@ -22,5 +24,11 @@ urlpatterns = [
     path("average_rating/<int:book_id>/", views.average_rating, name="average_rating"),
     path(
         "book/<int:book_id>/", views.user_rating_for_book, name="user_rating_for_book"
+    ),
+    path(
+        "get_top_books", views.top_rated_books, name="Top_books"
+    ),
+    path(
+        "get_top_authors/", views.top_rated_authors, name="Top_authors"
     ),
 ]

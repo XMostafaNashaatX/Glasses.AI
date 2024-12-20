@@ -35,17 +35,66 @@ export function BookDetails({ book }: BookDetailsProps) {
     }
   }, [book.id, authToken]);
 
-  const handleAddToCart = () => {
-    cartDispatch({ type: 'ADD_TO_CART', payload: book });
-  };
 
-  const handleToggleFavorite = () => {
-    if (isFavorite) {
-      favoritesDispatch({ type: 'REMOVE_FROM_FAVORITES', payload: book.id });
-    } else {
-      favoritesDispatch({ type: 'ADD_TO_FAVORITES', payload: book });
+  const handleAddToCart = async () => {
+    try {
+      await axios.post(
+        'http://127.0.0.1:8000/cart/add/',
+        { book_id: book.id },
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      cartDispatch({ type: 'ADD_TO_CART', payload: { book , quantity: 1 } });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
     }
   };
+
+  const addToFavorites = async () => {
+    if (!authToken) {
+      alert('You must be logged in to add to favorites.');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://127.0.0.1:8000/favourite_list/add/`,
+        { books: [{ book_id: book.id }] },
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      favoritesDispatch({ type: 'ADD_TO_FAVORITES', payload: book });
+      //alert('Book added to favorites.');
+    } catch (error: any) {
+      console.error('Error adding to favorites:', error.response?.data || error.message);
+      alert('An error occurred while adding to favorites.');
+    }
+  };
+
+  const removeFromFavorites = async () => {
+    if (!authToken) {
+      alert('You must be logged in to remove from favorites.');
+      return;
+    }
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/favourite_list/remove/${book.id}/`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      favoritesDispatch({ type: 'REMOVE_FROM_FAVORITES', payload: book.id });
+      //alert('Book removed from favorites.');
+    } catch (error: any) {
+      console.error('Error removing from favorites:', error.response?.data || error.message);
+      alert('An error occurred while removing from favorites.');
+    }
+  };
+
+  const toggleFavorite = () => {
+    if (isFavorite) {
+      removeFromFavorites();
+    } else {
+      addToFavorites();
+    }
+  };
+  
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +104,6 @@ export function BookDetails({ book }: BookDetailsProps) {
       return;
     }
 
-    // Ensure the rating is selected before submitting
     if (score === 0) {
       alert("Please select a rating before submitting.");
       return;
@@ -78,11 +126,8 @@ export function BookDetails({ book }: BookDetailsProps) {
         data: { score, review },
       });
 
-      // Update the user rating for the book
       setUserRatingForBook(response.data.user_rating);
 
-      console.log(response.data)
-      // Reset the form after submission
       setRating(0);
       setReview('');
     } catch (error) {
@@ -124,6 +169,21 @@ export function BookDetails({ book }: BookDetailsProps) {
           <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
           <p className="text-xl text-gray-600 mb-4">{book.author}</p>
 
+          {/* Display categories */}
+          <div className="text-2xl font-semibold mb-4">
+            <strong className="text-black">Categories:</strong>
+            <div className="flex flex-wrap gap-3 mt-3">
+              {book.categories.map((category: string, index: number) => (
+                <span
+                  key={index}
+                  className="bg-[#5A1A32] text-white px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-center mb-4">
             <Star className="h-5 w-5 text-yellow-400 fill-current" />
             <span className="ml-1 text-lg">
@@ -143,13 +203,15 @@ export function BookDetails({ book }: BookDetailsProps) {
               <span>Add to Cart</span>
             </button>
             <button
-              onClick={handleToggleFavorite}
-              className={`border border-[#5A1A32] p-2 rounded-lg ${isFavorite
-                ? 'bg-[#5A1A32] text-white'
-                : 'text-[#5A1A32] hover:bg-[#5A1A32] hover:text-white'
-                }`}
+              onClick={toggleFavorite}
+              className={`border p-2 rounded-lg ${
+                isFavorite
+                  ? 'bg-[#5A1A32] text-white'
+                  : 'bg-[#5A1A32] text-white hover:bg-[#5A1A32]/90'
+              }`}
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+              <span>{isFavorite ? '' : ''}</span>
             </button>
           </div>
 
