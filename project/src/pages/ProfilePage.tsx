@@ -31,8 +31,8 @@ export function ProfilePage() {
           lastName: data.last_name,
           middleName: data.middle_name,
           email: data.email,
-          password: '••••••••',
-          profilePicture: data.profile_image || '', // Update profile picture if available
+          password: '••••••••', // Do not fetch password
+          profilePicture: data.profile_picture || '', // Update profile picture if available
         });
       } else {
         console.error('Failed to fetch user profile:', response.status);
@@ -47,22 +47,24 @@ export function ProfilePage() {
   };
 
   const handleSaveChanges = async () => {
+    const formData = new FormData();
+    formData.append('username', userInfo.username);
+    formData.append('first_name', userInfo.firstName);
+    formData.append('middle_name', userInfo.middleName);
+    formData.append('last_name', userInfo.lastName);
+    formData.append('email', userInfo.email);
+    formData.append('password', userInfo.password); // Keep password in the request
+    if (userInfo.profilePicture) {
+      formData.append('profile_picture', userInfo.profilePicture); // Add profile picture
+    }
+
     try {
-      const response = await fetch('http://127.0.0.1:8000/users/profile/', {
+      const response = await fetch('http://127.0.0.1:8000/users/profile/update/', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          username: userInfo.username,
-          first_name: userInfo.firstName,
-          middle_name: userInfo.middleName,
-          last_name: userInfo.lastName,
-          email: userInfo.email,
-          password: userInfo.password, // Keep password in the request
-          profile_image: userInfo.profilePicture,
-        }),
+        body: formData, // Use FormData for file uploads
       });
 
       if (response.ok) {
@@ -78,14 +80,10 @@ export function ProfilePage() {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setUserInfo((prev) => ({
-          ...prev,
-          profilePicture: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      setUserInfo((prev) => ({
+        ...prev,
+        profilePicture: file, // Save file object for upload
+      }));
     }
   };
 
@@ -114,7 +112,7 @@ export function ProfilePage() {
           <div className="flex justify-center -mt-16">
             <div className="relative">
               <img
-                src={userInfo.profilePicture}
+                src={userInfo.profilePicture || 'default-profile-pic.png'}
                 alt="Profile"
                 className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
               />
@@ -165,20 +163,24 @@ export function ProfilePage() {
             </div>
 
             <div className="mt-6 text-right">
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg shadow-md hover:bg-[#A8A8AA] transition"
-                >
-                  Edit Profile
-                </button>
-              ) : (
-                <button
+              {isEditing ? (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleSaveChanges}
-                  className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg shadow-md hover:bg-[#A8A8AA] transition"
+                  className="py-3 px-6 bg-[#5A1A32] text-white rounded-lg hover:opacity-90 transition-opacity shadow-md"
                 >
                   Save Changes
-                </button>
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsEditing(true)}
+                  className="py-3 px-6 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors shadow-md"
+                >
+                  Edit Profile
+                </motion.button>
               )}
             </div>
           </div>
