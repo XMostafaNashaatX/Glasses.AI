@@ -10,6 +10,10 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { LoginPage } from './pages/LoginPage';
 import { CartProvider } from './context/CartContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { SignupPage } from './pages/SignupPage';
+import { ProfilePage } from './pages/ProfilePage';
+import SpotifyConnect from './pages/SpotifyConnect';
+import Genres from './pages/Genres';
 
 function App() {
   return (
@@ -26,6 +30,10 @@ function App() {
               <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/spotify" element={<SpotifyConnect />} />
+              <Route path="/genres" element={<Genres />} />
             </Routes>
           </div>
         </Router>

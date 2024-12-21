@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { User, Heart, List, LogOut, Settings } from 'lucide-react';
+import { User, Heart, List, LogOut, Settings, Music } from 'lucide-react';
 
 export function UserNav() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -32,18 +32,11 @@ export function UserNav() {
             Favorites
           </Link>
           <Link
-            to="/my-list"
+            to="/spotify"
             className="flex items-center px-4 py-2 hover:bg-gray-100"
           >
-            <List className="h-4 w-4 mr-2" />
-            My List
-          </Link>
-          <Link
-            to="/settings"
-            className="flex items-center px-4 py-2 hover:bg-gray-100"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
+            <Music className="h-4 w-4 mr-2" />
+            spotify
           </Link>
           <button
             className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
