@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import AllowAny
-
+from store.serializers import BookSerializer 
 
 class RatingViewSet(viewsets.ModelViewSet):
     queryset = Rating.objects.all()
@@ -240,3 +240,102 @@ def user_rating_for_book(request, book_id):
     # Use the refined serializer to return only the required data
     serializer = UserRatingSerializer(rating)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def top_rated_books(request):
+    try:
+
+        top_rated = 10
+
+        books = Book.objects.all()
+        books_with_ratings = []
+
+
+        for book in books:
+ 
+            ratings = Rating.objects.filter(book=book)
+            
+            if ratings.exists():
+
+                total_score = sum([rating.score for rating in ratings])
+                avg_rating = total_score / len(ratings)
+                books_with_ratings.append({
+                    'book': book,
+                    'avg_rating': avg_rating,
+                    'rating_count': len(ratings)
+                })
+        
+        sorted_books = sorted(books_with_ratings, key=lambda x: x['avg_rating'], reverse=True)
+
+        top_books = sorted_books[:top_rated]
+
+
+        top_books_data = []
+        for book in top_books:
+            book_data = BookSerializer(book['book']).data
+            book_data['avg_rating'] = book['avg_rating']
+            book_data['rating_count'] = book['rating_count']
+            top_books_data.append(book_data)
+
+        return Response(top_books_data, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def top_rated_authors(request):
+    try:
+        top_authors_count = 10  # Number of top-rated authors to return
+        books = Book.objects.all()
+
+        # Dictionary to store cumulative scores and counts for each author
+        author_ratings = {}
+
+        # Iterate through all books to calculate ratings
+        for book in books:
+            ratings = Rating.objects.filter(book=book)
+            
+            if ratings.exists():
+                total_score = sum([rating.score for rating in ratings])
+                avg_rating = total_score / len(ratings)
+
+                if book.author not in author_ratings:
+                    # Initialize author data
+                    author_ratings[book.author] = {
+                        "total_score": 0,
+                        "rating_count": 0,
+                        "books_count": 0,
+                    }
+
+                # Update cumulative scores and counts for the author
+                author_ratings[book.author]["total_score"] += total_score
+                author_ratings[book.author]["rating_count"] += len(ratings)
+                author_ratings[book.author]["books_count"] += 1
+
+        # Calculate average rating for each author
+        authors_with_avg_rating = [
+            {
+                "author": author,
+                "avg_rating": data["total_score"] / data["rating_count"],
+                "rating_count": data["rating_count"],
+                "books_count": data["books_count"],
+            }
+            for author, data in author_ratings.items()
+        ]
+
+        # Sort authors by average rating in descending order
+        sorted_authors = sorted(authors_with_avg_rating, key=lambda x: x["avg_rating"], reverse=True)
+
+        # Select top-rated authors
+        top_authors = sorted_authors[:top_authors_count]
+
+        return Response(top_authors, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

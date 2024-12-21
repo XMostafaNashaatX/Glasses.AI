@@ -1,54 +1,64 @@
-import React from 'react';
-import type { Author } from '../../types';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const TOP_AUTHORS: Author[] = [
-  {
-    id: '1',
-    name: 'J.K. Rowling',
-    photo: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&q=80&w=400',
-    rating: 4.9,
-    booksCount: 15
-  },
-  {
-    id: '1',
-    name: 'J.K. Rowling',
-    photo: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&q=80&w=400',
-    rating: 4.9,
-    booksCount: 15
-  },
-  {
-    id: '1',
-    name: 'J.K. Rowling',
-    photo: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&q=80&w=400',
-    rating: 4.9,
-    booksCount: 15
-  },
-  {
-    id: '1',
-    name: 'J.K. Rowling',
-    photo: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=crop&q=80&w=400',
-    rating: 4.9,
-    booksCount: 15
-  },
-  // Add more authors...
-];
+interface Author {
+  id: string;
+  author: string;
+  avg_rating: number;
+  books_count: number;
+  photo: string;
+}
 
 export function TopAuthors() {
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const authToken = localStorage.getItem('access'); 
+
+  useEffect(() => {
+    const fetchTopAuthors = async () => {
+      if (!authToken) {
+        setError('No auth token found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/ratings/get_top_authors/', {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        setAuthors(response.data); 
+      } catch (error: any) {
+        setError(error.response ? error.response.data : error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopAuthors();
+  }, [authToken]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <section className="py-8">
       <h2 className="text-2xl font-bold mb-6">Top 10 Rated Authors</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {TOP_AUTHORS.map((author) => (
-          <div key={author.id} className="bg-white rounded-lg shadow-md p-4">
+        {authors.map((author, index) => (
+          <div key={index} className="bg-white rounded-lg shadow-md p-4">
             <img
-              src={author.photo}
-              alt={author.name}
+              src={author.photo || 'https://via.placeholder.com/150'} // Fallback to placeholder if no photo
+              alt={author.author}
               className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
             />
-            <h3 className="text-lg font-semibold text-center">{author.name}</h3>
+            <h3 className="text-lg font-semibold text-center">{author.author}</h3>
             <div className="text-center text-gray-600">
-              <p>Rating: {author.rating}/5</p>
-              <p>{author.booksCount} books published</p>
+              <p>Average Rating: {author.avg_rating.toFixed(1)}/5</p>
+              <p>{author.books_count} books published</p>
             </div>
           </div>
         ))}

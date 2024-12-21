@@ -20,10 +20,9 @@ from django.http import JsonResponse
 
 class AllBooks(View):
     def get(self, request):
-        # Fetch all books from the database
+
         books = Book.objects.all()
 
-        # Create a list of dictionaries with the required fields
         books_data = [
             {
                 "id": book.id,
@@ -36,12 +35,12 @@ class AllBooks(View):
                 "image_url_l": book.image_url_l,
                 "price": str(
                     book.price
-                ),  # Convert price to string for JSON compatibility
+                ),  
+                "categories": [category.name for category in book.categories.all()],
             }
             for book in books
         ]
 
-        # Return the books data as JSON
         return JsonResponse(books_data, safe=False)
 
 
@@ -61,6 +60,7 @@ class BookDetail(View):
             "image_url_m": book.image_url_m,
             "image_url_l": book.image_url_l,
             "price": str(book.price),
+            "categories": [category.name for category in book.categories.all()],
         }
 
         # Return the book details as JSON
