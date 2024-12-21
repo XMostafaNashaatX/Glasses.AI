@@ -201,7 +201,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "glasses_db",
         "USER": "root",
-        "PASSWORD": "abdo1234",
+        "PASSWORD": "1234",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
