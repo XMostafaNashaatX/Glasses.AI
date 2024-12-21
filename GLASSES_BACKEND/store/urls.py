@@ -8,4 +8,5 @@ urlpatterns = [
     path("update/order/", Update_order.as_view(), name="update_order"),
     path("books/all/", AllBooks.as_view(), name="all-books"),
     path("books/<int:book_id>/", BookDetail.as_view(), name="book-detail"),
+    path('category/<int:category_id>/', BooksByCategoryView.as_view(), name='books_by_category'),
 ]

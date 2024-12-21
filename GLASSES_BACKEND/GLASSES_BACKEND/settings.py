@@ -274,3 +274,9 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 
 # CORS_URLS_REGEX = r"^/carts/.*$"
+
+import os
+
+# Media settings for file uploads
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

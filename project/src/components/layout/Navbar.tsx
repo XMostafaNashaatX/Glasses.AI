@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Book, ShoppingCart, Home, BookOpen, Menu, X } from 'lucide-react';
+import { Book, ShoppingCart, Home, BookOpen, Menu, X, Library } from 'lucide-react';
 import { UserNav } from './UserNav';
 
 export function Navbar() {
@@ -27,7 +27,10 @@ export function Navbar() {
               <BookOpen className="h-4 w-4" />
               <span>Books</span>
             </Link>
-            <Link to="/genres" className="hover:text-[#A8A8AA]">Genres</Link>
+            <Link to="/genres" className="flex items-center space-x-1 hover:text-[#A8A8AA]">
+              <Library className="w-5 h-5" />
+              <span>Genres</span>
+            </Link>
             <Link to="/cart" className="flex items-center space-x-1 hover:text-[#A8A8AA]">
               <ShoppingCart className="h-4 w-4" />
               <span>Cart</span>

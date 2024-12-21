@@ -13,9 +13,10 @@ from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated
-from .models import Book
+from .models import Book , Category
 from django.views import View
 from django.http import JsonResponse
+from rest_framework.exceptions import NotFound
 
 
 class AllBooks(View):
@@ -42,6 +43,38 @@ class AllBooks(View):
         ]
 
         return JsonResponse(books_data, safe=False)
+    
+
+class BooksByCategoryView(View):
+    def get(self, request, category_id):
+        try:
+            # Fetch the category by ID
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            raise NotFound(detail=f"Category with ID '{category_id}' not found")
+
+        # Get books related to the category
+        books = Book.objects.filter(categories=category)
+
+        # Prepare the response data in the same structure as the AllBooks view
+        books_data = [
+            {
+                "id": book.id,
+                "title": book.title,
+                "author": book.author,
+                "year_publication": book.year_publication,
+                "publisher": book.publisher,
+                "image_url_s": book.image_url_s,
+                "image_url_m": book.image_url_m,
+                "image_url_l": book.image_url_l,
+                "price": str(book.price),
+                "categories": [category.name for category in book.categories.all()],
+            }
+            for book in books
+        ]
+
+        return JsonResponse(books_data, safe=False)
+
 
 
 class BookDetail(View):

@@ -1,9 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { User, Heart, List, LogOut, Settings } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Heart, List, LogOut, Settings, Music } from 'lucide-react';
 
 export function UserNav() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
 
   return (
     <div className="relative">
@@ -16,7 +21,7 @@ export function UserNav() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-gray-700">
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-gray-700 z-30">
           <Link
             to="/profile"
             className="flex items-center px-4 py-2 hover:bg-gray-100"
@@ -32,22 +37,15 @@ export function UserNav() {
             Favorites
           </Link>
           <Link
-            to="/my-list"
+            to="/spotify"
             className="flex items-center px-4 py-2 hover:bg-gray-100"
           >
-            <List className="h-4 w-4 mr-2" />
-            My List
-          </Link>
-          <Link
-            to="/settings"
-            className="flex items-center px-4 py-2 hover:bg-gray-100"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
+            <Music className="h-4 w-4 mr-2" />
+            Spotify
           </Link>
           <button
             className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-            onClick={() => {/* Add logout logic */}}
+            onClick={handleLogout} 
           >
             <LogOut className="h-4 w-4 mr-2" />
             Logout
