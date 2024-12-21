@@ -161,6 +161,9 @@ class ProfileView(APIView):
         return Response(user_data)
 
 
+from django.contrib.auth import update_session_auth_hash
+
+
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -172,50 +175,68 @@ class UpdateProfileView(APIView):
         try:
             profile = user.profile  # Attempt to get the user's profile
         except Profile.DoesNotExist:
-            # Handle case where the profile doesn't exist
             return Response(
                 {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        # Extract the user data from the request
+        # Update user data
         user_data = {
             "username": request.data.get("username", user.username),
             "email": request.data.get("email", user.email),
         }
 
-        # Only include the password field if it is provided in the request
         password = request.data.get("password", None)
         if password:
-            user_data["password"] = password
-
-        # Update the user data (username, email, password)
-        user_serializer = UserSerializer(user, data=user_data, partial=True)
-        if user_serializer.is_valid():
-            user_serializer.save()
-
-            # Extract the profile data from the request (nested 'profile' field)
-            profile_data = request.data.get("profile", {})
-
-            # Update the profile fields (first_name, middle_name, last_name, profile_image)
-            profile_data = {
-                "first_name": profile_data.get("first_name", profile.first_name),
-                "middle_name": profile_data.get("middle_name", profile.middle_name),
-                "last_name": profile_data.get("last_name", profile.last_name),
-                "profile_image": profile_data.get(
-                    "profile_image", profile.profile_image
-                ),
-            }
-
-            # Update the profile data (first_name, middle_name, last_name, profile_image)
-            profile_serializer = ProfileSerializer(
-                profile, data=profile_data, partial=True
-            )
-            if profile_serializer.is_valid():
-                profile_serializer.save()
-                return Response(user_serializer.data, status=status.HTTP_200_OK)
-            else:
+            try:
+                validate_password(password, user=user)
+                user.set_password(password)
+            except ValidationError as e:
                 return Response(
-                    profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                    {"error": e.messages}, status=status.HTTP_400_BAD_REQUEST
                 )
-        else:
+
+        user_serializer = UserSerializer(user, data=user_data, partial=True)
+        if not user_serializer.is_valid():
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user_serializer.save()
+
+        # Update profile data
+        profile_data = {
+            "first_name": request.data.get("first_name", profile.first_name),
+            "middle_name": request.data.get("middle_name", profile.middle_name),
+            "last_name": request.data.get("last_name", profile.last_name),
+        }
+
+        # Handle profile image upload
+        profile_picture = request.FILES.get("profile_picture", None)
+        if profile_picture:
+            profile_data["profile_image"] = profile_picture
+
+        profile_serializer = ProfileSerializer(profile, data=profile_data, partial=True)
+        if not profile_serializer.is_valid():
+            return Response(
+                profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        profile_serializer.save()
+
+        # Update session if password was changed
+        if password:
+            update_session_auth_hash(request, user)
+
+        # Combine user and profile data in the response
+        response_data = {
+            "username": user.username,
+            "first_name": profile.first_name,
+            "middle_name": profile.middle_name,
+            "last_name": profile.last_name,
+            "email": user.email,
+            "profile_image": (
+                profile.profile_image.url
+                if profile.profile_image
+                else "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+            ),
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
