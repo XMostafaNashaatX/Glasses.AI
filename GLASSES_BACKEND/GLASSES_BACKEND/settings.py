@@ -31,8 +31,25 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 # Application definition
+
+
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    # "X-CSRFToken",
+    "Authorization",
+]
 
 INSTALLED_APPS = [
     "register.apps.RegisterConfig",
@@ -47,26 +64,36 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    'rest_framework.authtoken',
+    "rest_framework.authtoken",
     "corsheaders",
     "rest_framework_simplejwt",
     "payments",
-    "cart",
     "favouritelist",
     "recommendtion",
+    "carts",
     # "users",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Ensure this is before CommonMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Your frontend URL
+]
+
+# MIDDLEWARE = [
+#     # Other middleware
+#     "corsheaders.middleware.CorsMiddleware",
+#     "django.middleware.common.CommonMiddleware",
+# ]
 
 # REST_FRAMEWORK = {
 #     "DEFAULT_PERMISSION_CLASSES": [
@@ -107,12 +134,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
-CORS_ALLOW_CREDENTIALS = True
-
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",
+# ]
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=140),
@@ -147,8 +171,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 
 ROOT_URLCONF = "GLASSES_BACKEND.urls"
@@ -217,20 +239,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-]
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_HEADERS = [
-    "content-type",  # Allow content-type header for POST requests
-    "X-CSRFToken",  # Allow CSRF token header
-    "Authorization",  # If using authentication headers
-]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -265,13 +273,4 @@ SESSION_SAVE_EVERY_REQUEST = True
 # LOGIN_REDIRECT_URL = "/"
 
 
-CSRF_COOKIE_SAMESITE = "None"  # Important for cross-site cookies
-CSRF_COOKIE_SECURE = (
-    True  # Use secure cookies (make sure your site is served over HTTPS)
-)
-
-# Ensure session cookies are sent with SameSite=None and Secure if using HTTPS
-CSRF_COOKIE_SAMESITE = "None"  # Ensure CSRF cookie is sent cross-site
-SESSION_COOKIE_SAMESITE = "None"  # Ensure session cookies are sent cross-site
-CSRF_COOKIE_SECURE = False  # Disable secure cookies for HTTP
-SESSION_COOKIE_SECURE = False  # Disable secure cookies for HTTP
+# CORS_URLS_REGEX = r"^/carts/.*$"
