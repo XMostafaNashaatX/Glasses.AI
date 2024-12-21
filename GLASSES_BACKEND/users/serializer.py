@@ -13,12 +13,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "last_name",
             "profile_image",
         ]
-        extra_kwargs = {
-            "first_name": {"required": False},
-            "middle_name": {"required": False},
-            "last_name": {"required": False},
-            "profile_image": {"required": False},
-        }
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -34,18 +28,28 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        # Update user instance
+        # Pop profile data from validated_data
         profile_data = validated_data.pop("profile", None)
+
+        # Update the user instance with the validated data
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Update profile if profile data is provided
+        # If profile data is provided, update the profile
         if profile_data:
             profile = instance.profile
             for attr, value in profile_data.items():
                 setattr(profile, attr, value)
             profile.save()
+
+        # Update first_name and last_name directly if they are not in profile data
+        if "first_name" in validated_data:
+            instance.first_name = validated_data["first_name"]
+        if "last_name" in validated_data:
+            instance.last_name = validated_data["last_name"]
+
+        instance.save()  # Ensure the user instance is saved with updated first/last name
 
         return instance
 

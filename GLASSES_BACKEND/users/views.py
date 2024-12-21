@@ -68,10 +68,8 @@ def csrf(request):
 @api_view(["POST"])
 def signup(request):
     if request.method == "POST":
-        # Use the serializer to validate the data
         serializer = UserSignupSerializer(data=request.data)
 
-        # Check if the serializer is valid
         if serializer.is_valid():
             username = serializer.validated_data.get("username")
             email = serializer.validated_data.get("email")
@@ -225,18 +223,4 @@ class UpdateProfileView(APIView):
         if password:
             update_session_auth_hash(request, user)
 
-        # Combine user and profile data in the response
-        response_data = {
-            "username": user.username,
-            "first_name": profile.first_name,
-            "middle_name": profile.middle_name,
-            "last_name": profile.last_name,
-            "email": user.email,
-            "profile_image": (
-                profile.profile_image.url
-                if profile.profile_image
-                else "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-            ),
-        }
-
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response({"message": "Profile updated successfully"})
