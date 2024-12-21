@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,6 +18,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import password_validation
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.password_validation import validate_password
+from users.models import Profile
+from users.serializer import ProfileSerializer
 
 
 class LoginView(APIView):
@@ -72,22 +76,146 @@ def signup(request):
             username = serializer.validated_data.get("username")
             email = serializer.validated_data.get("email")
             password = serializer.validated_data.get("password")
+            confirm_password = serializer.validated_data.get(
+                "confirm_password"
+            )  # Get confirm_password
+
+            # Ensure password and confirm_password match
+            if password != confirm_password:
+                return Response(
+                    {"error": "Passwords do not match"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            first_name = serializer.validated_data.get("first_name", "")
+            last_name = serializer.validated_data.get("last_name", "")
+            middle_name = serializer.validated_data.get("middle_name", "")
 
             try:
                 # Create new user
                 user = User.objects.create_user(
-                    username=username, email=email, password=password
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password=password,
+                )
+
+                # Create the user's profile if necessary
+                Profile.objects.create(
+                    user=user,
+                    first_name=first_name,
+                    last_name=last_name,
+                    middle_name=middle_name,
                 )
 
                 return Response(
-                    {"message": "User created successfully"},
+                    {"message": f"User {username} created successfully"},
                     status=status.HTTP_201_CREATED,
                 )
             except Exception as e:
+                # Return the error message
                 return Response(
-                    {"error": "Internal server error"},
+                    {"error": str(e)},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-        print(serializer.errors)
+
         # If the serializer is not valid, return the errors
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        View the profile information of the current logged-in user.
+        """
+        user = request.user
+        try:
+            profile = user.profile  # Attempt to get the user's profile
+        except Profile.DoesNotExist:
+            # Handle case where the profile doesn't exist
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get profile image, use default if not available
+        profile_image = (
+            profile.profile_image
+            if profile.profile_image
+            else "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+        )
+
+        # Serialize the necessary profile data and user data
+        profile_data = ProfileSerializer(profile).data
+        user_data = {
+            "username": user.username,
+            "first_name": user.first_name,
+            "middle_name": profile.middle_name,  # Assuming middle_name is in profile
+            "last_name": user.last_name,
+            "email": user.email,
+            "profile_image": profile_image,  # Ensure the profile image is included
+        }
+
+        return Response(user_data)
+
+
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        """
+        Update the profile information of the current logged-in user.
+        """
+        user = request.user
+        try:
+            profile = user.profile  # Attempt to get the user's profile
+        except Profile.DoesNotExist:
+            # Handle case where the profile doesn't exist
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Extract the user data from the request
+        user_data = {
+            "username": request.data.get("username", user.username),
+            "email": request.data.get("email", user.email),
+        }
+
+        # Only include the password field if it is provided in the request
+        password = request.data.get("password", None)
+        if password:
+            user_data["password"] = password
+
+        # Update the user data (username, email, password)
+        user_serializer = UserSerializer(user, data=user_data, partial=True)
+        if user_serializer.is_valid():
+            user_serializer.save()
+
+            # Extract the profile data from the request (nested 'profile' field)
+            profile_data = request.data.get("profile", {})
+
+            # Update the profile fields (first_name, middle_name, last_name, profile_image)
+            profile_data = {
+                "first_name": profile_data.get("first_name", profile.first_name),
+                "middle_name": profile_data.get("middle_name", profile.middle_name),
+                "last_name": profile_data.get("last_name", profile.last_name),
+                "profile_image": profile_data.get(
+                    "profile_image", profile.profile_image
+                ),
+            }
+
+            # Update the profile data (first_name, middle_name, last_name, profile_image)
+            profile_serializer = ProfileSerializer(
+                profile, data=profile_data, partial=True
+            )
+            if profile_serializer.is_valid():
+                profile_serializer.save()
+                return Response(user_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

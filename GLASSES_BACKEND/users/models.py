@@ -7,8 +7,13 @@ class Profile(models.Model):
     first_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100, blank=True, null=True)
     middle_name = models.CharField(max_length=100, blank=True, null=True)
-    profile_image = models.ImageField(
-        upload_to="profile_images/", blank=True, null=True
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    gender = models.CharField(max_length=10, blank=True, null=True)
+    profile_image = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        default=" ",
     )
 
     def __str__(self):
