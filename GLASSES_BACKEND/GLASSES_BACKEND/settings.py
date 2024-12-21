@@ -279,3 +279,7 @@ import os
 # Media settings for file uploads
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+STRIPE_SECRET_KEY = "sk_test_51QYTefC1eVNOye6P4ku6iFtwgOXCp4CRcNyoURTIqDcB2Jl5p5QuQngVoMPwDpZxK7w28aWvtSPpq8Zd3CZpNGht00SnmvexRa"
+STRIPE_PUBLIC_KEY = "pk_test_51QYTefC1eVNOye6PYXquDZz450NwDfnubpixWq25PrVbVmHUzxifrDt5aGyB0oU0HB0BvXUoMOmX1WKH8bfVhG5u00wmrUwikJ"

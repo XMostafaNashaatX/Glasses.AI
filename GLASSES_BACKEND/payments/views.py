@@ -1,5 +1,6 @@
 import paypalrestsdk
 from django.conf import settings
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -7,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from store.models import Book
 from payments.models import Payment
 from carts.models import Cart, CartItem
+import stripe
+
 
 # PayPal configuration
 paypalrestsdk.configure(
@@ -125,3 +128,98 @@ def execute_payment(request):
 @permission_classes([IsAuthenticated])  # Require JWT authentication
 def cancel_payment(request):
     return Response({"message": "Payment was canceled by user"})
+
+
+# Configure Stripe with your secret key
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # Require JWT authentication
+def create_visa_payment(request):
+    user = request.user
+
+    # Fetch the user's cart
+    cart = get_object_or_404(Cart, user=user)
+    cart_items = cart.items.all()
+
+    if not cart_items.exists():
+        return Response({"error": "Cart is empty"}, status=400)
+
+    # Calculate total amount for the cart items
+    calculated_total_price = sum(
+        float(item.price) * item.quantity for item in cart_items
+    )
+
+    try:
+        # Create a PaymentIntent for Visa (Stripe's way of handling card payments)
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(calculated_total_price * 100),  # Stripe accepts amount in cents
+            currency="usd",
+            payment_method_types=["card"],  # Visa card payment method
+        )
+
+        # Create a Payment record in the database (with a 'pending' status)
+        payment = Payment.objects.create(
+            user=user,
+            amount=calculated_total_price,
+            transaction_id=payment_intent.id,
+            payment_method="visa",
+            status="pending",  # Set as pending until confirmed
+            payment_intent_id=payment_intent.id,
+        )
+
+        return Response({"client_secret": payment_intent.client_secret})
+
+    except stripe.error.StripeError as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # Require JWT authentication
+def execute_visa_payment(request):
+    user = request.user
+    payment_intent_id = request.data.get("payment_intent_id")
+
+    if not payment_intent_id:
+        return Response({"error": "Payment Intent ID is required"}, status=400)
+
+    try:
+        # Retrieve the PaymentIntent from Stripe
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+
+        if payment_intent.status == "succeeded":
+            # Payment was successful
+            charge = payment_intent.charges.data[0]
+            card_last4 = charge.payment_method_details.card.last4
+            card_brand = charge.payment_method_details.card.brand
+
+            # Update the Payment record in the database
+            payment = get_object_or_404(
+                Payment, transaction_id=payment_intent.id, user=user
+            )
+            payment.status = "completed"
+            payment.card_last4 = card_last4
+            payment.card_brand = card_brand
+            payment.save()
+
+            # Clear the cart after successful payment
+            cart = get_object_or_404(Cart, user=user)
+            cart.items.clear()
+            cart.save()
+
+            return Response(
+                {
+                    "message": "Visa payment successful",
+                    "transaction_id": payment_intent.id,
+                }
+            )
+
+        else:
+            return Response({"error": "Payment not successful"}, status=400)
+
+    except stripe.error.StripeError as e:
+        return Response({"error": str(e)}, status=500)
+
+    except Payment.DoesNotExist:
+        return Response({"error": "Payment not found for this user."}, status=404)
