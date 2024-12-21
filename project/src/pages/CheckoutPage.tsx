@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, CircleDollarSign } from 'lucide-react';
-import { FaPaypal } from 'react-icons/fa'; // PayPal icon
-import { FaCcVisa } from 'react-icons/fa'; // Visa icon
+import { FaPaypal, FaCcVisa } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
+import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 
 type PaymentMethod = 'credit-card' | 'paypal';
 
@@ -12,24 +11,26 @@ export function CheckoutPage() {
   const { cartItems, calculateTotal, clearCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit-card');
   const [total, setTotal] = useState<number>(0);
-  const [paypalApprovalUrl, setPaypalApprovalUrl] = useState<string | null>(null);
+
+  const stripe = useStripe();
+  const elements = useElements();
 
   useEffect(() => {
     const fetchTotal = async () => {
-      const fetchedTotal = await calculateTotal();
-      if (fetchedTotal !== null) {
-        setTotal(fetchedTotal);
+      try {
+        const fetchedTotal = await calculateTotal();
+        setTotal(fetchedTotal || 0);
+      } catch (error) {
+        console.error('Error fetching total:', error);
       }
     };
 
     fetchTotal();
   }, [cartItems, calculateTotal]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (paymentMethod === 'paypal') {
-      const response = await fetch('http://127.0.0.1:8000/payments/create/', {
+  const handlePaymentCreation = async (url: string) => {
+    try {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,57 +39,65 @@ export function CheckoutPage() {
         body: JSON.stringify({}),
       });
 
-      const data = await response.json();
-      if (data.approval_url) {
+      if (!response.ok) throw new Error('Payment creation failed');
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (paymentMethod === 'paypal') {
+      const data = await handlePaymentCreation('http://127.0.0.1:8000/payments/create/');
+      if (data?.approval_url) {
         window.location.href = data.approval_url;
       } else {
-        alert('Error creating payment');
+        alert('Error creating PayPal payment');
       }
-    } else {
-      navigate('/thank-you');
+    } else if (paymentMethod === 'credit-card') {
+      if (!stripe || !elements) {
+        alert('Stripe has not loaded yet.');
+        return;
+      }
+
+      const data = await handlePaymentCreation('http://127.0.0.1:8000/payments/create_visa/');
+      if (data?.client_secret) {
+        const cardElement = elements.getElement(CardElement);
+        if (!cardElement) {
+          alert('Invalid card details.');
+          return;
+        }
+
+        const result = await stripe.confirmCardPayment(data.client_secret, {
+          payment_method: { card: cardElement },
+        });
+
+        if (result.error) {
+          alert('Payment failed: ' + result.error.message);
+        } else if (result.paymentIntent?.status === 'succeeded') {
+          clearCart();
+          navigate('/');
+        }
+      } else {
+        alert('Error creating Visa payment');
+      }
     }
   };
 
-  const handlePaymentSuccess = async (paymentId: string, payerId: string) => {
-    const response = await fetch(`http://127.0.0.1:8000/payments/execute/?paymentId=${paymentId}&PayerID=${payerId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-
-    const data = await response.json();
-    if (data.message === 'Payment successful') {
-      clearCart();
-      navigate('/thank-you');
-    } else {
-      alert('Payment failed');
-    }
-  };
-
-  const handleCancelPayment = async () => {
-    const response = await fetch('http://127.0.0.1:8000/payments/cancel/', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-
-    const data = await response.json();
-    if (data.message) {
-      alert(data.message);
-    } else {
-      alert('Error canceling payment');
-    }
-
+  const handleCancelPayment = () => {
+    alert('Payment canceled.');
     navigate('/cart');
   };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-8">Checkout</h2>
+
+      {/* Payment Method Selection */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h3 className="text-xl font-semibold mb-4">Payment Method</h3>
         <div className="space-y-4">
@@ -98,10 +107,10 @@ export function CheckoutPage() {
               name="payment"
               value="credit-card"
               checked={paymentMethod === 'credit-card'}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              onChange={() => setPaymentMethod('credit-card')}
               className="mr-3"
             />
-            <FaCcVisa className="h-6 w-6 mr-2" /> {/* Visa Icon */}
+            <FaCcVisa className="h-6 w-6 mr-2" />
             <span>Credit Card</span>
           </label>
 
@@ -111,54 +120,60 @@ export function CheckoutPage() {
               name="payment"
               value="paypal"
               checked={paymentMethod === 'paypal'}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              onChange={() => setPaymentMethod('paypal')}
               className="mr-3"
             />
-            <FaPaypal className="h-6 w-6 mr-2" /> {/* PayPal Icon */}
+            <FaPaypal className="h-6 w-6 mr-2" />
             <span>PayPal</span>
           </label>
         </div>
       </div>
 
+      {/* Credit Card Form */}
       {paymentMethod === 'credit-card' && (
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Card Number
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A1A32]"
-                placeholder="1234 5678 9012 3456"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry Date
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A1A32]"
-                  placeholder="MM/YY"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CVC
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5A1A32]"
-                  placeholder="123"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Card Details</label>
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#32325d',
+                    '::placeholder': { color: '#aab7c4' },
+                  },
+                },
+              }}
+            />
           </div>
+          <button
+            type="submit"
+            className="mt-6 w-full bg-[#5A1A32] text-white px-6 py-3 rounded-lg hover:bg-[#5A1A32]/90"
+          >
+            Pay Now
+          </button>
         </form>
       )}
 
+      {/* PayPal Buttons */}
+      {paymentMethod === 'paypal' && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-[#0070BA] text-white px-6 py-3 rounded-lg hover:bg-[#005C99]"
+          >
+            Pay with PayPal
+          </button>
+          <button
+            onClick={handleCancelPayment}
+            className="mt-4 w-full bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+          >
+            Cancel Payment
+          </button>
+        </div>
+      )}
+
+      {/* Order Summary */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
         <div className="space-y-2 mb-4">
@@ -178,22 +193,6 @@ export function CheckoutPage() {
           </div>
         </div>
       </div>
-
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-[#5A1A32] text-white px-6 py-3 rounded-lg hover:bg-[#5A1A32]/90"
-      >
-        Complete Purchase
-      </button>
-
-      {paymentMethod === 'paypal' && (
-        <button
-          onClick={handleCancelPayment}
-          className="w-full bg-gray-500 text-white px-6 py-3 rounded-lg mt-4 hover:bg-gray-600"
-        >
-          Cancel Payment
-        </button>
-      )}
     </div>
   );
 }
