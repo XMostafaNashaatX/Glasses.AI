@@ -1,6 +1,8 @@
+// src/pages/HomePage.tsx
 import React from 'react';
 import { TopBooks } from '../components/home/TopBooks';
 import { TopAuthors } from '../components/home/TopAuthors';
+import { RecommendedBooks } from '../components/home/RecommendedBooks'; // Import RecommendedBooks component
 
 export function HomePage() {
   return (
@@ -8,8 +10,7 @@ export function HomePage() {
       <TopBooks />
       <TopAuthors />
       <section className="py-8">
-        <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
-        <TopBooks /> {/* Reusing TopBooks component for demonstration */}
+        <RecommendedBooks /> {/* Use RecommendedBooks component for displaying recommendations */}
       </section>
     </div>
   );

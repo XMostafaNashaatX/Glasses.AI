@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import axios from 'axios';
 import type { Book } from '../../types';
+import { Trash } from 'lucide-react'; 
 
 interface BookDetailsProps {
   book: Book;
@@ -248,7 +249,7 @@ export function BookDetails({ book }: BookDetailsProps) {
               </div>
               <button
                 type="submit"
-                className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg hover:bg-[#5A1A32]/90"
+                className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg hover:bg-[#5A1A32]/90 z-10"
               >
                 Submit Review
               </button>
@@ -258,12 +259,13 @@ export function BookDetails({ book }: BookDetailsProps) {
               <div className="mt-4">
                 <button
                   onClick={handleDeleteRating}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 ml-2"
+                  className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-400 flex items-center justify-center z-0"
                 >
-                  Delete Your Rating
+                  <Trash className="h-5 w-5" />
                 </button>
               </div>
             )}
+            
           </div>
         </div>
       </div>

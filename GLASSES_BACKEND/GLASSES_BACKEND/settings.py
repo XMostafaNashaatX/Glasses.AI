@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "payments",
     "cart",
     "favouritelist",
+    "recommendtion",
     # "users",
 ]
 

@@ -17,13 +17,10 @@ class Retrieve_FavoriteList(APIView):
 
     def get(self, request):
         try:
-            # Get or create the user's favorite list
             favorite_list, created = FavoriteList.objects.get_or_create(user=request.user)
 
-            # Retrieve all favorite list items and their related books
             favorite_items = favorite_list.items.all()
 
-            # Map the books to the desired structure by accessing the book model via the 'book' field
             books_data = [
                 {
                     "id": item.book.id,
@@ -34,12 +31,11 @@ class Retrieve_FavoriteList(APIView):
                     "image_url_s": item.book.image_url_s,
                     "image_url_m": item.book.image_url_m,
                     "image_url_l": item.book.image_url_l,
-                    "price": str(item.book.price),  # Convert price to string for JSON compatibility
+                    "price": str(item.book.price),  
                 }
                 for item in favorite_items
             ]
 
-            # Return the data
             return Response(books_data, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -105,7 +101,6 @@ class AddToFavoriteList(APIView):
             
             favorite_items.append(FavoriteListItem(favorite_list=favorite_list, book=book))
 
-        # Using bulk_create to optimize performance
         FavoriteListItem.objects.bulk_create(favorite_items)
 
         serializer = FavoriteListItemSerializer(favorite_list.items.all(), many=True)
