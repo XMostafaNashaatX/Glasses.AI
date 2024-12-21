@@ -1,26 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Mail, User, Key, Edit3 } from 'lucide-react';
+import { Camera, Edit3 } from 'lucide-react';
 
 export function ProfilePage() {
   const [userInfo, setUserInfo] = useState({
-    username: 'johndoe',
-    firstName: 'John',
-    lastName: 'Doe',
-    middleName: 'Michael',
-    email: 'john.doe@example.com',
+    username: '',
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    email: '',
     password: '••••••••',
+    profilePicture: '', // To handle profile picture
   });
-
   const [isEditing, setIsEditing] = useState(false);
-  const [profilePicture, setProfilePicture] = useState("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80");
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('access'));
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/users/profile/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserInfo({
+          username: data.username,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          middleName: data.middle_name,
+          email: data.email,
+          password: '••••••••',
+          profilePicture: data.profile_image || '', // Update profile picture if available
+        });
+      } else {
+        console.error('Failed to fetch user profile:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setUserInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveChanges = () => {
-    setIsEditing(false);
+  const handleSaveChanges = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/users/profile/', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userInfo.username,
+          first_name: userInfo.firstName,
+          middle_name: userInfo.middleName,
+          last_name: userInfo.lastName,
+          email: userInfo.email,
+          password: userInfo.password, // Keep password in the request
+          profile_image: userInfo.profilePicture,
+        }),
+      });
+
+      if (response.ok) {
+        setIsEditing(false);
+      } else {
+        console.error('Failed to save changes:', response.status);
+      }
+    } catch (error) {
+      console.error('Error saving profile changes:', error);
+    }
   };
 
   const handleProfilePictureChange = (e) => {
@@ -28,11 +80,20 @@ export function ProfilePage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setProfilePicture(reader.result);
+        setUserInfo((prev) => ({
+          ...prev,
+          profilePicture: reader.result,
+        }));
       };
       reader.readAsDataURL(file);
     }
   };
+
+  useEffect(() => {
+    if (accessToken) {
+      fetchUserProfile();
+    }
+  }, [accessToken]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5A1A32] to-[#A8A8AA]">
@@ -45,7 +106,7 @@ export function ProfilePage() {
           {/* Header Section */}
           <div className="relative h-32 bg-[#5A1A32]">
             <div className="absolute top-10 left-8">
-              <h1 className="text-xl font-semibold text-white">Welcome, John!</h1>
+              <h1 className="text-xl font-semibold text-white">Welcome, {userInfo.firstName}!</h1>
             </div>
           </div>
 
@@ -53,7 +114,7 @@ export function ProfilePage() {
           <div className="flex justify-center -mt-16">
             <div className="relative">
               <img
-                src={profilePicture}
+                src={userInfo.profilePicture}
                 alt="Profile"
                 className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
               />
@@ -94,9 +155,8 @@ export function ProfilePage() {
                       value={userInfo[field]}
                       disabled={!isEditing}
                       onChange={(e) => handleInputChange(field, e.target.value)}
-                      className={`w-full bg-transparent text-gray-900 focus:outline-none border-b-2 transition-colors ${
-                        isEditing ? 'border-gray-300 focus:border-[#5A1A32]' : 'border-transparent'
-                      }`}
+                      className={`w-full bg-transparent text-gray-900 focus:outline-none border-b-2 transition-colors ${isEditing ? 'border-gray-300 focus:border-[#5A1A32]' : 'border-transparent'
+                        }`}
                     />
                   </div>
                   {isEditing && <Edit3 className="w-5 h-5 text-gray-500" />}
@@ -105,24 +165,20 @@ export function ProfilePage() {
             </div>
 
             <div className="mt-6 text-right">
-              {isEditing ? (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSaveChanges}
-                  className="py-3 px-6 bg-[#5A1A32] text-white rounded-lg hover:opacity-90 transition-opacity shadow-md"
-                >
-                  Save Changes
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              {!isEditing ? (
+                <button
                   onClick={() => setIsEditing(true)}
-                  className="py-3 px-6 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors shadow-md"
+                  className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg shadow-md hover:bg-[#A8A8AA] transition"
                 >
                   Edit Profile
-                </motion.button>
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveChanges}
+                  className="bg-[#5A1A32] text-white px-6 py-2 rounded-lg shadow-md hover:bg-[#A8A8AA] transition"
+                >
+                  Save Changes
+                </button>
               )}
             </div>
           </div>

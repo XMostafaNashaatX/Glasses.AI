@@ -11,7 +11,7 @@ export function SignupPage() {
     lastName: '',
     middleName: '',
     password: '',
-    confirmPassword: '',
+    confirm_password: '',  // Changed here
   });
 
   const navigate = useNavigate();
@@ -22,8 +22,37 @@ export function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual signup logic
-    navigate('/profile');
+
+    // Get the JWT token from localStorage
+    const token = localStorage.getItem('access');
+
+    // Set up the headers with the Authorization token
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
+    };
+
+    // API request to sign up
+    try {
+      const response = await fetch('http://127.0.0.1:8000/users/signup/', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // If signup is successful, navigate to profile page
+        navigate('/profile');
+      } else {
+        // Handle errors here
+        const data = await response.json();
+        console.error('Signup failed:', data);
+        // Optionally show an error message to the user
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+      // Optionally show an error message to the user
+    }
   };
 
   return (
@@ -121,15 +150,15 @@ export function SignupPage() {
           />
         </div>
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="confirm_password" className="block text-sm font-medium text-gray-700">
             Confirm Password
           </label>
           <motion.input
             whileFocus={{ scale: 1.01 }}
             type="password"
-            name="confirmPassword"
-            id="confirmPassword"
-            value={formData.confirmPassword}
+            name="confirm_password"  // Changed here
+            id="confirm_password"     // Changed here
+            value={formData.confirm_password}  // Changed here
             onChange={handleChange}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#5A1A32] focus:border-[#5A1A32]"

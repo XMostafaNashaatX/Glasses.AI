@@ -2,32 +2,53 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AuthLayout } from '../components/AuthLayout';
-import { User } from '../types/auth';
+import axios from 'axios';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual login logic
-    navigate('/profile');
+
+    try {
+      // Make the POST request to the login API
+      const response = await axios.post(
+        'http://127.0.0.1:8000/users/api/token/',
+        { username, password },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+
+      // Store the JWT token in localStorage
+      const { access } = response.data;
+      localStorage.setItem('access', access);
+
+      // Set default Authorization header for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+      // Redirect to the profile page or any other page
+      navigate('/profile');
+    } catch (err) {
+      setError('Invalid username or password');
+      console.error('Login error:', err);
+    }
   };
 
   return (
     <AuthLayout title="Welcome Back">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+            Username
           </label>
           <motion.input
             whileFocus={{ scale: 1.01 }}
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#5A1A32] focus:border-[#5A1A32]"
           />
@@ -46,6 +67,7 @@ export function LoginPage() {
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#5A1A32] focus:border-[#5A1A32]"
           />
         </div>
+        {error && <p className="text-red-600">{error}</p>}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
